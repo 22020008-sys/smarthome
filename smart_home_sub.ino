@@ -1,14 +1,11 @@
 /*
  * ============================================================
- * SMART HOME - SUB (ESP32 thường) - PHIÊN BẢN ĐÃ CẬP NHẬT LED GPIO
- * Chức năng: Điều khiển ĐÈN (4 LED chạy trực tiếp GPIO), QUẠT (3), MÁY BƠM (1) qua Relay
- * Đọc Cảm biến độ ẩm đất -> Tự động tưới và gửi dữ liệu về Main
- * Nút nhấn vật lý cho TẤT CẢ thiết bị (Có chống nhiễu mảng)
+ * SMART HOME - SUB 
  * ============================================================
  */
 
 // ==============================================================================
-// 1. KHAI BÁO CHÂN THIẾT BỊ VÀ ĐÈN LED (SỬA ĐỔI TÊN PHÙ HỢP VỚI ĐẤU NỐI GPIO TRỰC TIẾP)
+// 1. KHAI BÁO CHÂN THIẾT BỊ VÀ ĐÈN LED 
 // ==============================================================================
 #define MAIN_TX_PIN         17  // Nối vào RX(18) của Main
 #define MAIN_RX_PIN         16  // Nối vào TX(17) của Main
@@ -16,13 +13,13 @@
 // -- Cảm biến --
 #define SOIL_MOISTURE_PIN   34  // Chân Analog đọc Cảm biến độ ẩm đất
 
-// -- Hệ thống LED Đèn (Chạy trực tiếp GPIO, không dùng Relay) --
+// -- Hệ thống LED Đèn --
 #define PIN_LED_KHACH       4   // LED Phòng Khách (Hỗ trợ PWM tự động điều chỉnh độ sáng)
 #define PIN_LED_NGU         5   
 #define PIN_LED_BEP         18  
 #define PIN_LED_WC          19  
 
-// -- Hệ thống Relay (Quạt & Máy bơm dùng Relay mức Thấp - Active LOW) --
+// -- Hệ thống Relay --
 #define RELAY_FAN_KHACH     21  
 #define RELAY_FAN_NGU       22  
 #define RELAY_FAN_BEP       23  
@@ -43,11 +40,11 @@ unsigned long lastSoilSampleTime = 0;
 // 3. CẤU TRÚC LỌC NHIỄU CHO NHIỀU NÚT NHẤN (DEBOUNCE ARRAY)
 // ==============================================================================
 struct NutNhan {
-  int pin;                        // Chân cắm nút nhấn
-  String deviceCode;              // Mã thiết bị điều khiển (DK, DN, MB...)
-  int lastFlickerState;           // Trạng thái nhiễu lần đọc trước
-  int confirmedState;             // Trạng thái đã được xác nhận ổn định
-  unsigned long lastDebounceTime; // Bộ đếm thời gian lọc nhiễu
+  int pin;                      
+  String deviceCode;           
+  int lastFlickerState;           
+  int confirmedState;             
+  unsigned long lastDebounceTime; 
 };
 
 NutNhan danhSachNutNhan[] = {
@@ -66,29 +63,26 @@ const int TONG_SO_NUT = sizeof(danhSachNutNhan) / sizeof(NutNhan);
 // 4. HÀM KHỞI TẠO VÀ ĐIỀU KHIỂN THIẾT BỊ
 // ==============================================================================
 void initAllDevices() {
-  // Cấu hình PWM cho LED Phòng Khách (Tần số 5000Hz, độ phân giải 8-bit: 0-255)
   ledcAttach(PIN_LED_KHACH, 5000, 8);
-  ledcWrite(PIN_LED_KHACH, 0); // Ban đầu tắt đèn
+  ledcWrite(PIN_LED_KHACH, 0); 
   Serial.println(F("[SUB-LED] Da khoi tao PWM cho LED Phong Khach (GPIO 4)"));
 
-  // Các LED phòng ngủ, bếp, wc chạy chế độ ON/OFF trực tiếp qua GPIO
   pinMode(PIN_LED_NGU, OUTPUT); digitalWrite(PIN_LED_NGU, LOW);
   pinMode(PIN_LED_BEP, OUTPUT); digitalWrite(PIN_LED_BEP, LOW);
   pinMode(PIN_LED_WC,  OUTPUT); digitalWrite(PIN_LED_WC,  LOW);
   Serial.println(F("[SUB-LED] Da khoi tao cac LED con lai (GPIO 5, 18, 19) o muc LOW"));
 
-  // Quạt dùng module Relay kích mức Thấp (Active LOW)
-  pinMode(RELAY_FAN_KHACH,  OUTPUT); digitalWrite(RELAY_FAN_KHACH,  HIGH); // Tắt relay
-  pinMode(RELAY_FAN_NGU,    OUTPUT); digitalWrite(RELAY_FAN_NGU,    HIGH); // Tắt relay
-  pinMode(RELAY_FAN_BEP,    OUTPUT); digitalWrite(RELAY_FAN_BEP,    HIGH); // Tắt relay
-  pinMode(RELAY_MAY_BOM,    OUTPUT); digitalWrite(RELAY_MAY_BOM,    LOW);  // Relay máy bơm (Active HIGH)
+  pinMode(RELAY_FAN_KHACH,  OUTPUT); digitalWrite(RELAY_FAN_KHACH,  HIGH); 
+  pinMode(RELAY_FAN_NGU,    OUTPUT); digitalWrite(RELAY_FAN_NGU,    HIGH);
+  pinMode(RELAY_FAN_BEP,    OUTPUT); digitalWrite(RELAY_FAN_BEP,    HIGH);
+  pinMode(RELAY_MAY_BOM,    OUTPUT); digitalWrite(RELAY_MAY_BOM,    LOW);  
   Serial.println(F("[SUB-RELAY] Da khoi tao cac Relay Quat & May Bom"));
 }
 
 void setDeviceState(String name, bool state) {
   if (name == "DK") { 
     state_dk = state;
-    ledcWrite(PIN_LED_KHACH, state ? 255 : 0); // Bật max hoặc tắt hẳn
+    ledcWrite(PIN_LED_KHACH, state ? 255 : 0); 
     Serial.printf("[SUB-LOG] LED Phong Khach -> %s (PWM: %d)\n", state ? "BAT" : "TAT", state ? 255 : 0);
   }
   else if (name == "DN") { 
@@ -141,7 +135,7 @@ bool getDeviceState(String name) {
 }
 
 // ==============================================================================
-// 5. XỬ LÝ NÚT NHẤN (CHỐNG NHIỄU HÀNG LOẠT)
+// 5. XỬ LÝ NÚT NHẤN 
 // ==============================================================================
 void xuLyCacNutNhan() {
   for (int i = 0; i < TONG_SO_NUT; i++) {
@@ -172,17 +166,15 @@ void xuLyCacNutNhan() {
 // 6. XỬ LÝ ĐỘ ẨM ĐẤT & TỰ ĐỘNG TƯỚI
 // ==============================================================================
 void xuLyHeThongTuoiNuoc() {
-  if (millis() - lastSoilSampleTime > 2000) { // Cứ 2 giây đọc cảm biến 1 lần
+  if (millis() - lastSoilSampleTime > 2000) { 
     lastSoilSampleTime = millis();
     int rawAnalog = analogRead(SOIL_MOISTURE_PIN);
-    
-    // Quy đổi: 4095 là khô hoàn toàn, 1200 là ngập nước.
+  
     int pct = map(rawAnalog, 4095, 1200, 0, 100);
     pct = constrain(pct, 0, 100);
     
     Serial.printf("[GARDEN] Analog tho: %d => Do am quy doi: %d%%\n", rawAnalog, pct);
-    
-    // Gửi về Main khi độ ẩm lệch 2%, HOẶC ép gửi mỗi 60 giây để chắc chắn Main nhận được
+
     static unsigned long lastSyncSoil = 0;
     if (millis() - lastSyncSoil > 60000) {
       lastSyncSoil = millis();
@@ -193,7 +185,7 @@ void xuLyHeThongTuoiNuoc() {
 }
 
 // ==============================================================================
-// 7. NHẬN LỆNH TỪ BOARD TRUNG TÂM QUA UART (BỔ SUNG GIẢI MÃ LỆNH PWM CHO LED KHACH)
+// 7. NHẬN LỆNH TỪ BOARD TRUNG TÂM QUA UART
 // ==============================================================================
 void handleMainSerial() {
   while (Serial2.available()) {
@@ -201,15 +193,13 @@ void handleMainSerial() {
     line.trim();
     
     if (line.length() > 0) {
-      // Tiếp nhận xung PWM dimming mượt mà từ Main gửi xuống
       if (line.startsWith("CMD:DK_PWM:")) {
         int pwmVal = line.substring(11).toInt();
         pwmVal = constrain(pwmVal, 0, 255);
         state_dk = (pwmVal > 0);
         ledcWrite(PIN_LED_KHACH, pwmVal);
         Serial.printf("[UART NHAN] Main dieu chinh Dimming LED Khach -> PWM: %d\n", pwmVal);
-      } 
-      // Các lệnh ON/OFF cơ bản thông thường
+      }
       else if (line.startsWith("CMD:")) {
         String phanSau = line.substring(4);
         int colonPos   = phanSau.indexOf(':');
@@ -252,8 +242,8 @@ void setup() {
 // 9. VÒNG LẶP CHÍNH
 // ==============================================================================
 void loop() {
-  handleMainSerial();       // Lắng nghe lệnh từ App/Main
-  xuLyCacNutNhan();         // Quét nút vật lý
-  xuLyHeThongTuoiNuoc();    // Đọc cảm biến & chạy bơm
+  handleMainSerial();      
+  xuLyCacNutNhan();        
+  xuLyHeThongTuoiNuoc();    
   delay(10);
 }
