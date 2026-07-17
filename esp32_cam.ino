@@ -5,7 +5,7 @@
 #include <WiFiManager.h>
 #include <ESPmDNS.h>
 
-// ================= CẤU HÌNH TELEGRAM CỦA BẠN =================
+// ================= CẤU HÌNH TELEGRAM =================
 String BOT_TOKEN = "8893233580:AAFpQzmGJIU5vAabV41UkS1qTgNQhA0Jbms";
 String CHAT_ID   = "5099971415";
 // =============================================================
@@ -54,9 +54,8 @@ void setupCamera() {
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
   
-  // Nâng cao chất lượng ảnh nếu có PSRAM
   if(psramFound()){
-    config.frame_size = FRAMESIZE_UXGA; // Ảnh kích thước lớn, sắc nét
+    config.frame_size = FRAMESIZE_UXGA; 
     config.jpeg_quality = 10;
     config.fb_count = 2;
   } else {
@@ -78,12 +77,8 @@ String sendPhotoToTelegram() {
   String getBody = "";
 
   camera_fb_t * fb = NULL;
-  
-  // Bật Flash trợ sáng trước khi chụp (Tùy chọn, bỏ dấu // ở 2 dòng dưới để kích hoạt)
-  // digitalWrite(FLASH_LED_PIN, HIGH);
-  // delay(500);
+
   fb = esp_camera_fb_get();
-  // digitalWrite(FLASH_LED_PIN, LOW);
   
   if(!fb) {
     Serial.println("Loi chup anh");
@@ -91,7 +86,7 @@ String sendPhotoToTelegram() {
   }
 
   WiFiClientSecure client_tcp;
-  client_tcp.setInsecure(); // Chấp nhận mọi chứng chỉ SSL
+  client_tcp.setInsecure();
   Serial.println("Dang ket noi Telegram...");
 
   if (client_tcp.connect(myDomain, 443)) {
@@ -107,8 +102,7 @@ String sendPhotoToTelegram() {
     client_tcp.println("Content-Type: multipart/form-data; boundary=SmartHome");
     client_tcp.println();
     client_tcp.print(head);
-    
-    // Gửi dữ liệu ảnh theo từng khối nhỏ để tránh tràn RAM
+
     uint8_t *fbBuf = fb->buf;
     size_t fbLen = fb->len;
     for (size_t n=0; n<fbLen; n=n+1024) {
@@ -158,12 +152,10 @@ String sendPhotoToTelegram() {
 // ====================================================
 
 void handleRoot() {
-  // Trả về một dòng chữ đơn giản nếu có ai truy cập vào IP của Camera
   server.send(200, "text/plain", "He thong Camera An Ninh dang hoat dong o che do cho. San sang nhan lenh chup anh!");
 }
 
 void handleCapture() {
-  // Hàm này được gọi bởi ESP32-S3 khi MC38 phát hiện cửa mở
   server.send(200, "text/plain", "Da nhan lenh tu Main Board. Dang chup va gui anh...");
   Serial.println("Phat hien canh bao! Dang chup anh...");
   sendPhotoToTelegram();
@@ -176,8 +168,6 @@ void setup() {
 
   // --- BẮT ĐẦU CẤU HÌNH WIFI BẰNG WIFIMANAGER ---
   WiFiManager wm;
-  
-  // wm.resetSettings(); // Bỏ comment dòng này nếu bạn muốn xóa WiFi đã lưu để cài đặt lại từ đầu
 
   Serial.println("Dang ket noi WiFi hoac mo cong truy cap WiFiManager...");
   
@@ -192,12 +182,11 @@ void setup() {
   Serial.println("\nWiFi ket noi thanh cong!");
   Serial.print("IP ESP32-CAM cua ban la: ");
   Serial.println(WiFi.localIP()); 
-  // ----------------------------------------------
 
   // ==========================================================
-  // THÊM MỚI: KHỞI TẠO TÊN MIỀN MDNS CHO CAMERA
+  // KHỞI TẠO TÊN MIỀN MDNS CHO CAMERA
   // ==========================================================
-  if (!MDNS.begin("camera-anninh")) { // Đặt tên miền là camera-anninh
+  if (!MDNS.begin("camera-anninh")) { 
     Serial.println("[Loi] Khong the khoi tao mDNS!");
   } else {
     Serial.println("[Thanh cong] mDNS da chay!");
@@ -207,9 +196,8 @@ void setup() {
 
   setupCamera();
 
-  // Khởi tạo các API
-  server.on("/", HTTP_GET, handleRoot);           // Đường dẫn gốc, chỉ hiển thị text trạng thái
-  server.on("/capture", HTTP_GET, handleCapture); // API nhận lệnh báo động từ board S3
+  server.on("/", HTTP_GET, handleRoot);           
+  server.on("/capture", HTTP_GET, handleCapture);
   server.begin();
   
   Serial.println("Web server da khoi dong. San sang hoat dong!");
