@@ -1,7 +1,6 @@
 /*
  * ============================================================
- * SMART HOME - MAIN (ESP32-S3) - PHIÊN BẢN HỖ TRỢ SLIDER NGƯỠNG SÁNG RAINMAKER
- * CẬP NHẬT: TỰ ĐỘNG ĐIỀU CHỈNH ĐỘ SÁNG LED PHÒNG KHÁCH (PWM) & TỰ ĐỘNG BÙ SÁNG BẰNG RÈM CỬA
+ * SMART HOME - MAIN
  * ============================================================
  */
 
@@ -106,14 +105,14 @@ int lux_ngoai = 0;
 int sensorSendState = 0; 
 unsigned long lastSensorSendTick = 0;
 
-// --- THÔNG SỐ TỰ ĐỘNG ĐIỀU CHỈNH ĐÈN PHÒNG KHÁCH (LƯU FLASH PREFERENCES) ---
-int target_lux = 300;            // Ngưỡng độ sáng mục tiêu (Sẽ đồng bộ từ RainMaker Slider)
+// --- THÔNG SỐ TỰ ĐỘNG ĐIỀU CHỈNH ĐÈN PHÒNG KHÁCH ---
+int target_lux = 300;           
 #define LUX_TOLERANCE       20   // Sai số lux cho phép (+/- 20 lux) để tránh đèn nhấp nháy liên tục
 #define PWM_STEP            15   // Độ nhạy tăng/giảm PWM của LED
 #define MIN_PWM_DK          10   // Độ mờ tối thiểu của LED Khách khi bật
 #define MAX_PWM_DK          255  // Độ sáng tối đa của LED Khách
 
-int current_pwm_dk = 255;        // Mức PWM thực tế đang chạy
+int current_pwm_dk = 255;     
 unsigned long lastAutoLightTime = 0;
 
 // ==============================================================================
@@ -204,8 +203,7 @@ void capNhatTuSub(const String &maDevice, int value) {
     state_den_khach = state; 
     den_khach.updateAndReportParam("Power", state); 
     prefs.putBool("den_khach", state);
-    
-    // Khi bấm nút cứng bật, đặt LED Phòng Khách ở mức cao nhất trước, hệ thống Auto sẽ tự hạ độ sáng sau
+
     if (state) current_pwm_dk = MAX_PWM_DK;
     else current_pwm_dk = 0;
   }
@@ -236,12 +234,10 @@ void handleSubSerial() {
 // HỆ THỐNG TỰ ĐỘNG ĐIỀU CHỈNH ĐỘ SÁNG LED & BÙ SÁNG BẰNG RÈM CỬA
 // ==============================================================================
 void xuLyTuDongAnhSang() {
-  // Chỉ thực thi căn chỉnh ánh sáng khi LED phòng khách đang được kích hoạt BẬT
   if (!state_den_khach) {
     return;
   }
 
-  // Thu thập dữ liệu ánh sáng thực tế trong phòng
   lux_trong = (int)bh1750_trong.readLightLevel();
   if (lux_trong < 0) {
     Serial.println(F("[LOG][AUTO LIGHT] Loi doc cam bien anh sang trong phong! Bo qua chu ky."));
@@ -250,17 +246,13 @@ void xuLyTuDongAnhSang() {
 
   bool canCapNhatPwm = false;
 
-  // TRƯỜNG HỢP 1: Thiếu sáng (Cường độ lux thực tế nhỏ hơn target_lux trừ đi sai số)
   if (lux_trong < (target_lux - LUX_TOLERANCE)) {
-    // Nếu LED chưa đạt mức sáng cực đại -> Tăng xung PWM
     if (current_pwm_dk < MAX_PWM_DK) {
       current_pwm_dk += PWM_STEP;
       if (current_pwm_dk > MAX_PWM_DK) current_pwm_dk = MAX_PWM_DK;
       canCapNhatPwm = true;
       Serial.printf("[LOG][AUTO LIGHT] Thieu sang (%d < %d Lux) -> Tang PWM LED len: %d\n", lux_trong, target_lux, current_pwm_dk);
     } 
-    // LED đã kịch kim mà phòng vẫn tối -> Tự động kéo mở rèm cửa sổ để lấy ánh sáng tự nhiên bên ngoài
-    else {
       if (!state_rem_cua) {
         Serial.printf("[LOG][AUTO LIGHT] LED da sang Max (255) nhung van toi (%d < %d Lux) -> Tu dong mo rem cua so de bu sang!\n", lux_trong, target_lux);
         state_rem_cua = true;
@@ -270,16 +262,13 @@ void xuLyTuDongAnhSang() {
       }
     }
   }
-  // TRƯỜNG HỢP 2: Thừa sáng (Cường độ lux lớn hơn target_lux cộng thêm sai số)
   else if (lux_trong > (target_lux + LUX_TOLERANCE)) {
-    // Nếu LED đang sáng cao hơn mức sáng tối thiểu -> Hạ xung PWM để tiết kiệm điện
     if (current_pwm_dk > MIN_PWM_DK) {
       current_pwm_dk -= PWM_STEP;
       if (current_pwm_dk < MIN_PWM_DK) current_pwm_dk = MIN_PWM_DK;
       canCapNhatPwm = true;
       Serial.printf("[LOG][AUTO LIGHT] Du sang (%d > %d Lux) -> Giam PWM LED xuong: %d\n", lux_trong, target_lux, current_pwm_dk);
     }
-    // Đèn đã dim mờ nhất nhưng phòng vẫn quá chói -> Tự động khép bớt rèm cửa sổ lại
     else {
       if (state_rem_cua) {
         Serial.printf("[LOG][AUTO LIGHT] LED da mờ nhat (10) nhung van du sang (%d > %d Lux) -> Tu dong dong rem cua so!\n", lux_trong, target_lux);
@@ -290,8 +279,6 @@ void xuLyTuDongAnhSang() {
       }
     }
   }
-
-  // Nếu có sự thay đổi độ sáng, bắn lệnh UART điều khiển trực tiếp xuống mạch SUB
   if (canCapNhatPwm) {
     Serial1.printf("CMD:DK_PWM:%d\n", current_pwm_dk);
   }
@@ -591,25 +578,24 @@ void xuLyGuiSensorNonBlocking() {
         break;
       case 5:
         if (lux_ngoai >= 0) cam_bien_moi_truong.updateAndReportParam("Anh Sang Ngoai", lux_ngoai);
-        sensorSendState = 0; // Đã gửi xong, reset trạng thái
+        sensorSendState = 0;
         break;
     }
   }
 }
 
 // ==============================================================================
-// CALLBACK NHẬN SỰ KIỆN ĐIỀU KHIỂN TỪ APP RAINMAKER (BỒ SUNG SLIDER TARGET LUX)
+// CALLBACK NHẬN SỰ KIỆN ĐIỀU KHIỂN TỪ APP RAINMAKER 
 // ==============================================================================
 void write_callback(Device *device, Param *param, const param_val_t val, void *priv_data, write_ctx_t *ctx) {
   const char *device_name = device->getDeviceName();
   const char *param_name  = param->getParamName();
   bool s = val.val.b;
 
-  // --- Xử lý sự kiện kéo Slider "Ngưỡng Sáng" ---
   if (strcmp(device_name, "Moi Truong") == 0) {
     if (strcmp(param_name, "Nguong Sang") == 0) {
       target_lux = val.val.i;
-      prefs.putInt("target_lux", target_lux); // Lưu vào bộ nhớ flash để chống mất khi mất nguồn
+      prefs.putInt("target_lux", target_lux);
       Serial.printf("[LOG][RAINMAKER] Thiet lap Nguong Sang moi -> %d Lux\n", target_lux);
     }
   }
@@ -629,11 +615,11 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
     if      (strcmp(device_name, "Den Phong Khach")  == 0) { 
       state_den_khach  = s;
       if (s) {
-        current_pwm_dk = MAX_PWM_DK; // Mặc định bật LED sáng tối đa rồi hệ thống tự động sẽ dim mờ sau
+        current_pwm_dk = MAX_PWM_DK;
         sendDeviceCmd("DK", true); 
         Serial.printf("[LOG][APP] Bat LED Phong Khach (Khoi tao PWM: %d)\n", current_pwm_dk);
       } else {
-        current_pwm_dk = 0; // Tắt hẳn LED
+        current_pwm_dk = 0;
         sendDeviceCmd("DK", false); 
         Serial.println(F("[LOG][APP] Tat LED Phong Khach"));
       }
@@ -738,8 +724,7 @@ void reportInitialStates() {
   quat_bep.updateAndReportParam  ("Power", state_quat_bep);
   may_bom.updateAndReportParam   ("Power", state_may_bom);
   rem_cua.updateAndReportParam   ("Power", state_rem_cua); 
-  
-  // Đồng bộ cấu hình "Ngưỡng Sáng" lên App khi vừa kết nối
+
   cam_bien_moi_truong.updateAndReportParam("Nguong Sang", target_lux);
 
   syncAllDevices();
@@ -770,8 +755,7 @@ void setup() {
   state_may_bom    = prefs.getBool("may_bom",    false);
   state_rem_cua    = prefs.getBool("rem_cua",    false);
   matKhauDung = prefs.getString("mat_khau", "1234");
-  
-  // Đọc giá trị Ngưỡng sáng mục tiêu lưu trữ từ Preferences (mặc định là 300 Lux nếu trống)
+
   target_lux = prefs.getInt("target_lux", 300);
 
   if (!prefs.isKey("num_cards")) {
@@ -848,13 +832,11 @@ void setup() {
   Param luxOutParam("Anh Sang Ngoai", "esp.param.lux", value(0), PROP_FLAG_READ | PROP_FLAG_TIME_SERIES);
   cam_bien_moi_truong.addParam(luxOutParam);
 
-  // --- THÊM SLIDER "NGƯỠNG SÁNG" VÀO THIẾT BỊ "MOI TRUONG" TRÊN APP ---
   Param targetLuxParam("Nguong Sang", "esp.param.target_lux", value(target_lux), PROP_FLAG_READ | PROP_FLAG_WRITE);
-  targetLuxParam.addBounds(value(100), value(800), value(10)); // Giới hạn kéo chỉnh từ 100 đến 800 Lux, mỗi nấc nhảy 10 Lux
+  targetLuxParam.addBounds(value(100), value(800), value(10)); 
   targetLuxParam.addUIType(ESP_RMAKER_UI_SLIDER);
   cam_bien_moi_truong.addParam(targetLuxParam);
   
-  // Đăng ký Callback nhận lệnh ghi slider cho thiết bị môi trường
   cam_bien_moi_truong.addCb(write_callback);
   my_node.addDevice(cam_bien_moi_truong);
 
@@ -914,7 +896,6 @@ void loop() {
   xuLyCacCamBienAnNinh(); 
   xuLyThuDoTuDong(); 
 
-  // --- TIẾN TRÌNH QUÉT VÀ ĐIỀU CHỈNH ĐỘ SÁNG LED/RÈM TỰ ĐỘNG (CỨ 3 GIÂY) ---
   if (millis() - lastAutoLightTime > 3000UL) {
     lastAutoLightTime = millis();
     xuLyTuDongAnhSang();
