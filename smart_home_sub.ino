@@ -63,11 +63,11 @@ const int TONG_SO_NUT = sizeof(danhSachNutNhan) / sizeof(NutNhan);
 // 4. HÀM KHỞI TẠO VÀ ĐIỀU KHIỂN THIẾT BỊ
 // ==============================================================================
 void initAllDevices() {
-  ledcAttach(PIN_LED_KHACH, 5000, 8);
+  ledcAttach(PIN_LED_NGU, 5000, 8);
   ledcWrite(PIN_LED_KHACH, 0); 
   Serial.println(F("[SUB-LED] Da khoi tao PWM cho LED Phong Khach (GPIO 4)"));
 
-  pinMode(PIN_LED_NGU, OUTPUT); digitalWrite(PIN_LED_NGU, LOW);
+  pinMode(PIN_LED_KHACH, OUTPUT); digitalWrite(PIN_LED_NGU, LOW);
   pinMode(PIN_LED_BEP, OUTPUT); digitalWrite(PIN_LED_BEP, LOW);
   pinMode(PIN_LED_WC,  OUTPUT); digitalWrite(PIN_LED_WC,  LOW);
   Serial.println(F("[SUB-LED] Da khoi tao cac LED con lai (GPIO 5, 18, 19) o muc LOW"));
@@ -80,15 +80,15 @@ void initAllDevices() {
 }
 
 void setDeviceState(String name, bool state) {
-  if (name == "DK") { 
-    state_dk = state;
-    ledcWrite(PIN_LED_KHACH, state ? 255 : 0); 
-    Serial.printf("[SUB-LOG] LED Phong Khach -> %s (PWM: %d)\n", state ? "BAT" : "TAT", state ? 255 : 0);
-  }
-  else if (name == "DN") { 
+  if (name == "DN") { 
     state_dn = state;
-    digitalWrite(PIN_LED_NGU,   state ? HIGH : LOW); 
-    Serial.printf("[SUB-LOG] LED Phong Ngu -> %s\n", state ? "BAT" : "TAT");
+    ledcWrite(PIN_LED_NGU, state ? 255 : 0); 
+    Serial.printf("[SUB-LOG] LED Phong Ngu -> %s (PWM: %d)\n", state ? "BAT" : "TAT", state ? 255 : 0);
+  }
+  else if (name == "DK") { 
+    state_dk = state;
+    digitalWrite(PIN_LED_KHACH,   state ? HIGH : LOW); 
+    Serial.printf("[SUB-LOG] LED Phong Khach -> %s\n", state ? "BAT" : "TAT");
   }
   else if (name == "DB") { 
     state_db = state;
@@ -163,7 +163,7 @@ void xuLyCacNutNhan() {
 }
 
 // ==============================================================================
-// 6. XỬ LÝ ĐỘ ẨM ĐẤT & TỰ ĐỘNG TƯỚI
+// 6. XỬ LÝ ĐỘ ẨM ĐẤT 
 // ==============================================================================
 void xuLyHeThongTuoiNuoc() {
   if (millis() - lastSoilSampleTime > 2000) { 
@@ -193,12 +193,12 @@ void handleMainSerial() {
     line.trim();
     
     if (line.length() > 0) {
-      if (line.startsWith("CMD:DK_PWM:")) {
+      if (line.startsWith("CMD:DN_PWM:")) {
         int pwmVal = line.substring(11).toInt();
         pwmVal = constrain(pwmVal, 0, 255);
-        state_dk = (pwmVal > 0);
-        ledcWrite(PIN_LED_KHACH, pwmVal);
-        Serial.printf("[UART NHAN] Main dieu chinh Dimming LED Khach -> PWM: %d\n", pwmVal);
+        state_dn = (pwmVal > 0);
+        ledcWrite(PIN_LED_NGU, pwmVal);
+        Serial.printf("[UART NHAN] Main dieu chinh Dimming LED Ngu -> PWM: %d\n", pwmVal);
       }
       else if (line.startsWith("CMD:")) {
         String phanSau = line.substring(4);
