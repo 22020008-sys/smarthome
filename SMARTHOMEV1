@@ -72,10 +72,10 @@ const int stepMatrix[8][4] = {
   {1, 0, 0, 0}, {1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 0},
   {0, 0, 1, 0}, {0, 0, 1, 1}, {0, 0, 0, 1}, {1, 0, 0, 1}
 };
-long so_buoc_mo_rem = 10000; 
+long so_buoc_mo_rem = 9000; 
 volatile long current_step_pos = 0; 
 volatile long target_step_pos  = 0; 
-int stepDelay = 5;
+int stepDelay = 3;
 TaskHandle_t StepperTask;
 
 // ==============================================================================
@@ -109,14 +109,14 @@ unsigned long lastSensorSendTick = 0;
 unsigned long oledMessageTimer = 0;
 #define OLED_MSG_DURATION 2000
 
-// --- THÔNG SỐ TỰ ĐỘNG ĐIỀU CHỈNH ĐÈN PHÒNG KHÁCH ---
+// --- THÔNG SỐ TỰ ĐỘNG ĐIỀU CHỈNH ĐÈN  ---
 int target_lux = 300;           
 #define LUX_TOLERANCE       20   
 #define PWM_STEP            15   
-#define MIN_PWM_DK          10   
-#define MAX_PWM_DK          255  
+#define MIN_PWM_DN          10   
+#define MAX_PWM_DN          255  
 
-int current_pwm_dk = 255;     
+int current_pwm_dn = 255;     
 unsigned long lastAutoLightTime = 0;
 
 // ==============================================================================
@@ -125,7 +125,7 @@ unsigned long lastAutoLightTime = 0;
 #define CLOSED_POS          0
 #define OPEN_POS            90
 #define CLOTHES_OUT_POS     0   
-#define CLOTHES_IN_POS      90 
+#define CLOTHES_IN_POS      130 
 
 #define SERVO_FREQ          50 
 #define SERVO_RES           14 
@@ -156,6 +156,9 @@ bool intrusionDetected      = false;
 bool forcedEntryAlarm       = false;
 unsigned long forcedEntryAlarmStart = 0;
 #define FORCED_ALARM_DURATION  15000UL
+bool simulatedIntrusion            = false; // Giả lập đột nhập từ nút nhấn trên App
+unsigned long simulatedIntrusionStart = 0;
+#define SIMULATED_ALARM_DURATION  15000UL
 bool buzzerBlinkState       = false; 
 bool fireDetected           = false;
 bool gasDetected            = false;
@@ -205,14 +208,14 @@ void syncAllDevices() {
 
 void capNhatTuSub(const String &maDevice, int value) {
   bool state = (value == 1);
-  if (maDevice == "DK") { 
-    state_den_khach = state; 
-    den_khach.updateAndReportParam("Power", state); 
+  if (maDevice == "DN") { 
+    state_den_ngu = state; 
+    den_ngu.updateAndReportParam("Power", state); 
     prefs.putBool("den_khach", state);
-    if (state) current_pwm_dk = MAX_PWM_DK;
-    else current_pwm_dk = 0;
+    if (state) current_pwm_dn = MAX_PWM_DN;
+    else current_pwm_dn = 0;
   }
-  else if (maDevice == "DN") { state_den_ngu = state; den_ngu.updateAndReportParam("Power", state); prefs.putBool("den_ngu", state); }
+  else if (maDevice == "DK") { state_den_khach = state; den_khach.updateAndReportParam("Power", state); prefs.putBool("den_khach", state); }
   else if (maDevice == "DB") { state_den_bep = state; den_bep.updateAndReportParam("Power", state); prefs.putBool("den_bep", state); }
   else if (maDevice == "DW") { state_den_wc = state; den_wc.updateAndReportParam("Power", state); prefs.putBool("den_wc", state); }
   else if (maDevice == "QK") { state_quat_khach = state; quat_khach.updateAndReportParam("Power", state); prefs.putBool("quat_khach", state); }
@@ -239,7 +242,7 @@ void handleSubSerial() {
 // HỆ THỐNG TỰ ĐỘNG ĐIỀU CHỈNH ĐỘ SÁNG LED & BÙ SÁNG BẰNG RÈM CỬA
 // ==============================================================================
 void xuLyTuDongAnhSang() {
-  if (!state_den_khach) return;
+  if (!state_den_ngu) return;
 
   lux_trong = (int)bh1750_trong.readLightLevel();
   if (lux_trong < 0) return; 
@@ -247,12 +250,12 @@ void xuLyTuDongAnhSang() {
   bool canCapNhatPwm = false;
 
   if (lux_trong < (target_lux - LUX_TOLERANCE)) {
-    if (current_pwm_dk < MAX_PWM_DK) {
-      current_pwm_dk += PWM_STEP;
-      if (current_pwm_dk > MAX_PWM_DK) current_pwm_dk = MAX_PWM_DK;
+    if (current_pwm_dn < MAX_PWM_DN) {
+      current_pwm_dn += PWM_STEP;
+      if (current_pwm_dn > MAX_PWM_DN) current_pwm_dn = MAX_PWM_DN;
       canCapNhatPwm = true;
     } 
-    if (current_pwm_dk >= MAX_PWM_DK && !state_rem_cua) {
+    if (current_pwm_dn >= MAX_PWM_DN && !state_rem_cua) {
       state_rem_cua = true;
       target_step_pos = so_buoc_mo_rem; 
       rem_cua.updateAndReportParam("Power", true);
@@ -260,9 +263,9 @@ void xuLyTuDongAnhSang() {
     }
   }
   else if (lux_trong > (target_lux + LUX_TOLERANCE)) {
-    if (current_pwm_dk > MIN_PWM_DK) {
-      current_pwm_dk -= PWM_STEP;
-      if (current_pwm_dk < MIN_PWM_DK) current_pwm_dk = MIN_PWM_DK;
+    if (current_pwm_dn > MIN_PWM_DN) {
+      current_pwm_dn -= PWM_STEP;
+      if (current_pwm_dn < MIN_PWM_DN) current_pwm_dn = MIN_PWM_DN;
       canCapNhatPwm = true;
     }
     else if (state_rem_cua) {
@@ -274,7 +277,7 @@ void xuLyTuDongAnhSang() {
   }
   
   if (canCapNhatPwm) {
-    Serial1.printf("CMD:DK_PWM:%d\n", current_pwm_dk);
+    Serial1.printf("CMD:DN_PWM:%d\n", current_pwm_dn);
   }
 }
 
@@ -335,80 +338,34 @@ void hienThiNhapMatKhau() {
   oled.print("# Xac nhan  * Xoa"); oled.display();
 }
 
-// ==============================================================================
-// HÀM KIỂM TRA VÀ KHÔI PHỤC RFID NGAY LẬP TỨC
-// ==============================================================================
-bool isRFIDHealthy() {
-  // Đọc thanh ghi phiên bản của chip
-  byte v = mfrc522.PCD_ReadRegister(mfrc522.VersionReg);
-  // Nếu trả về 0x00 hoặc 0xFF là chip đã bị treo hoặc mất kết nối
-  if (v == 0x00 || v == 0xFF) return false;
-  return true;
-}
-
-void recoverRFID() {
-  static unsigned long lastRecoverAttempt = 0;
-  // Chỉ cho phép thử lại sau mỗi 5 giây nếu vẫn bị treo
-  if (millis() - lastRecoverAttempt < 5000UL) return; 
-  lastRecoverAttempt = millis();
-
-  Serial.println(F("[CẢNH BÁO] Phát hiện RC522 lỗi. Đang khôi phục..."));
-  
-  // 1. Reset cứng
-  digitalWrite(RST_PIN, LOW);
-  delay(50); 
-  digitalWrite(RST_PIN, HIGH);
-  delay(50);
-  
-  // 2. Khởi động lại SPI (Quan trọng để giải phóng bus bị kẹt)
-  SPI.end();
-  SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, SS_PIN);
-  
-  // 3. Khởi tạo lại thư viện
-  mfrc522.PCD_Init();
-  
-  if (isRFIDHealthy()) {
-    Serial.println(F("[OK] RC522 đã sống lại!"));
-  } else {
-    Serial.println(F("[LỖI] RC522 vẫn chết. Sẽ thử lại sau 5 giây."));
-  }
-}
-
 void xuLyRFID() {
-  // --- BƯỚC 1: KIỂM TRA SỨC KHỎE CHIP TRƯỚC KHI LÀM VIỆC ---
-  if (!isRFIDHealthy()) {
-    recoverRFID();
-    return; // Đợi vòng lặp sau để đọc thẻ
+  if (millis() - lastRFIDReset > 300000UL) { 
+    mfrc522.PCD_Reset(); mfrc522.PCD_Init();
+    lastRFIDReset = millis(); 
   }
-
-  // --- BƯỚC 2: TIẾN HÀNH ĐỌC THẺ NHƯ BÌNH THƯỜNG ---
   if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
-    Serial.println("[LOG] RFID: Phát hiện thẻ!");
-
     if (quanLyTheMode) {
-      // Logic Quản lý thẻ (Thêm/Xóa)
       int foundIdx = -1;
       for (int i = 0; i < numCards; i++) {
         bool match = true;
         for (int j = 0; j < 4; j++) if (validCards[i][j] != mfrc522.uid.uidByte[j]) match = false;
         if (match) { foundIdx = i; break; }
       }
-      
       if (foundIdx >= 0) {
-        for (int i = foundIdx; i < numCards - 1; i++) memcpy(validCards[i], validCards[i+1], 4);
+        for (int i = foundIdx; i < numCards - 1; i++) {
+          for (int j = 0; j < 4; j++) validCards[i][j] = validCards[i+1][j];
+        }
         numCards--;
       } else if (numCards < MAX_CARDS) {
-        memcpy(validCards[numCards], mfrc522.uid.uidByte, 4);
-        numCards++;
+          for (int j = 0; j < 4; j++) validCards[numCards][j] = mfrc522.uid.uidByte[j];
+          numCards++;
       }
       prefs.putBytes("rfid_cards", validCards, sizeof(validCards));
       prefs.putInt("num_cards", numCards);
       quanLyTheMode = false;
       thiet_bi_an_ninh.updateAndReportParam("Quan Ly The", false);
       hienThiKetQuaMatKhau(true); 
-    } 
-    else {
-      // Logic So sánh thẻ để mở cửa
+    } else {
       bool dungThe = false;
       for (int i = 0; i < numCards; i++) {
         bool match = true;
@@ -419,10 +376,7 @@ void xuLyRFID() {
       if (dungThe) toggleCua(); 
       else xuLyTruyCapSai("The RFID");
     }
-    
-    // Kết thúc phiên đọc thẻ
-    mfrc522.PICC_HaltA(); 
-    mfrc522.PCD_StopCrypto1(); 
+    mfrc522.PICC_HaltA(); mfrc522.PCD_StopCrypto1(); yield();
   }
 }
 
@@ -480,6 +434,20 @@ void taskChupAnhCamera(void *pvParameters) {
   vTaskDelete(NULL);
 }
 
+// ==============================================================================
+// NÚT NHẤN GIẢ LẬP ĐỘT NHẬP (Điều khiển từ App RainMaker)
+// ==============================================================================
+void kichHoatGiaLapDotNhap() {
+  Serial.println(F("[LOG] Da kich hoat GIA LAP DOT NHAP tu App!"));
+  simulatedIntrusion = true;
+  simulatedIntrusionStart = millis();
+  thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "GIA LAP DOT NHAP");
+  // Kích hoạt camera chụp ảnh ngay lập tức (không chặn luồng chính)
+  xTaskCreate(taskChupAnhCamera, "CameraTaskSim", 4096, NULL, 1, NULL);
+  // Trả nút về trạng thái OFF ngay để App hiển thị như một nút nhấn (không phải công tắc giữ trạng thái)
+  thiet_bi_an_ninh.updateAndReportParam("Gia Lap Dot Nhap", false);
+}
+
 // FIX 2 & 3: Oversampling Gas & Chế độ Armed/Disarmed
 int readGasAnalogOversampled() {
   long sum = 0;
@@ -529,10 +497,19 @@ void xuLyCacCamBienAnNinh() {
     cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", gasDetected ? "CO GAS" : "An toan");
   }
 
-  bool canBaoDong = intrusionDetected || forcedEntryAlarm || fireDetected || gasDetected;
+  static bool lastSimulatedAlarm = false;
+  if (simulatedIntrusion && (millis() - simulatedIntrusionStart > SIMULATED_ALARM_DURATION)) simulatedIntrusion = false;
+  if (simulatedIntrusion != lastSimulatedAlarm) {
+    lastSimulatedAlarm = simulatedIntrusion;
+    if (!simulatedIntrusion && !intrusionDetected && !forcedEntryAlarm) {
+      thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "Binh thuong");
+    }
+  }
+
+  bool canBaoDong = intrusionDetected || forcedEntryAlarm || fireDetected || gasDetected || simulatedIntrusion;
   static unsigned long lastBlinkTime = 0;
   if (canBaoDong) {
-    if (millis() - lastBlinkTime > ((forcedEntryAlarm || fireDetected || gasDetected) ? 150UL : 400UL)) {
+    if (millis() - lastBlinkTime > ((forcedEntryAlarm || fireDetected || gasDetected || simulatedIntrusion) ? 150UL : 400UL)) {
       lastBlinkTime = millis();
       buzzerBlinkState = !buzzerBlinkState;
       digitalWrite(BUZZER_PIN, buzzerBlinkState);
@@ -623,13 +600,16 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       isArmed = s; // Cập nhật trạng thái Armed/Disarmed
       Serial.printf("[LOG] An Ninh -> %s\n", isArmed ? "DA BAT (ARMED)" : "DA TAT (DISARMED)");
     }
+    else if (strcmp(param_name, "Gia Lap Dot Nhap") == 0) {
+      if (s) kichHoatGiaLapDotNhap(); // Nhấn nút trên App -> chuông kêu + camera chụp
+    }
   }
   else if (strcmp(param_name, "Power") == 0) {
-    if (strcmp(device_name, "Den Phong Khach") == 0) { 
-      state_den_khach = s; current_pwm_dk = s ? MAX_PWM_DK : 0;
-      sendDeviceCmd("DK", s); prefs.putBool("den_khach", s); 
+    if (strcmp(device_name, "Den Phong Ngu") == 0) { 
+      state_den_ngu = s; current_pwm_dn = s ? MAX_PWM_DN : 0;
+      sendDeviceCmd("DN", s); prefs.putBool("den_ngu", s); 
     }
-    else if (strcmp(device_name, "Den Phong Ngu") == 0) { state_den_ngu = s; sendDeviceCmd("DN", s); prefs.putBool("den_ngu", s); }
+    else if (strcmp(device_name, "Den Phong Khach") == 0) { state_den_khach = s; sendDeviceCmd("DK", s); prefs.putBool("den_khach", s); }
     else if (strcmp(device_name, "Den Bep") == 0) { state_den_bep = s; sendDeviceCmd("DB", s); prefs.putBool("den_bep", s); }
     else if (strcmp(device_name, "Den WC") == 0) { state_den_wc = s; sendDeviceCmd("DW", s); prefs.putBool("den_wc", s); }
     else if (strcmp(device_name, "Quat Phong Khach") == 0) { state_quat_khach = s; sendDeviceCmd("QK", s); prefs.putBool("quat_khach", s); }
@@ -782,6 +762,8 @@ void setup() {
   cardParam.addUIType(ESP_RMAKER_UI_TOGGLE); thiet_bi_an_ninh.addParam(cardParam);
   Param passParam("Doi Mat Khau", ESP_RMAKER_PARAM_POWER, value(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
   passParam.addUIType(ESP_RMAKER_UI_TOGGLE); thiet_bi_an_ninh.addParam(passParam);
+  Param simIntrusionParam("Gia Lap Dot Nhap", ESP_RMAKER_PARAM_POWER, value(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
+  simIntrusionParam.addUIType(ESP_RMAKER_UI_TOGGLE); thiet_bi_an_ninh.addParam(simIntrusionParam);
   thiet_bi_an_ninh.addCb(write_callback);
   my_node.addDevice(thiet_bi_an_ninh);
 
@@ -807,7 +789,7 @@ void loop() {
     dangNhapMatKhau = false; inputBuffer = ""; 
   }
 
-  xuLyGuiSensorNonBlocking(); xuLyTouchTTP223();
+  xuLyGuiSensorNonBlocking(); xuLyTouchTTP223(); 
   xuLyRFID(); xuLyKeypad(); 
   xuLyCacCamBienAnNinh(); xuLyThuDoTuDong(); 
 
