@@ -9,66 +9,92 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
     :root {
-        --bg: #090d15;
-        --bg-grid: #0c111b;
-        --surface: #121828;
-        --surface-2: #171f33;
-        --border: #232d45;
-        --text: #e9edf7;
-        --text-dim: #8592ac;
-        --text-faint: #566079;
-        --accent: #33c7ff;
-        --accent-dim: #1a5f7a;
-        --live: #29d398;
-        --warn: #ff4a6b;
-        --amber: #ffb454;
+        --bg: #e9edf6;
+        --bg-grid: #dfe5f1;
+        --surface: #ffffff;
+        --surface-2: #f3f5fb;
+        --border: #c9d1e4;
+        --text: #1b2436;
+        --text-dim: #5b6580;
+        --text-faint: #8891ab;
+        --accent: #1f8fe0;
+        --accent-2: #5b7fee;
+        --live: #16a34a;
+        --warn: #ef4444;
+        --amber: #f59e0b;
 
-        --c-temp: #ff7a59;
-        --c-hum: #33c7ff;
-        --c-light-in: #ffd166;
-        --c-light-out: #c79cff;
-        --c-soil: #4ade80;
-        --c-gas: #ff4a6b;
+        --c-temp: #f2542d;
+        --c-hum: #1f8fe0;
+        --c-light-in: #eab308;
+        --c-light-out: #a855f7;
+        --c-soil: #22c55e;
+        --c-gas: #ef4444;
 
-        --radius: 12px;
+        /* Màu định danh riêng cho từng khu vực chức năng */
+        --login: #5b7fee;
+        --env: #f59e0b;
+        --chart: #1f8fe0;
+        --device: #8b5cf6;
+        --security: #14b8a6;
+        --weather: #22c55e;
+
+        --radius: 14px;
         --mono: 'JetBrains Mono', monospace;
         --display: 'Space Grotesk', sans-serif;
         --body: 'Inter', sans-serif;
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
         font-family: var(--body);
         background:
-            radial-gradient(circle at 15% 0%, rgba(51,199,255,0.07), transparent 45%),
-            radial-gradient(circle at 85% 15%, rgba(41,211,152,0.05), transparent 40%),
+            radial-gradient(circle at 8% -8%, rgba(245,158,11,0.10), transparent 40%),
+            radial-gradient(circle at 92% 0%, rgba(31,143,224,0.12), transparent 42%),
+            radial-gradient(circle at 100% 45%, rgba(139,92,246,0.08), transparent 38%),
+            radial-gradient(circle at -5% 55%, rgba(20,184,166,0.08), transparent 38%),
+            radial-gradient(circle at 50% 105%, rgba(34,197,94,0.07), transparent 40%),
             var(--bg);
+        background-attachment: fixed;
         color: var(--text);
         margin: 0;
-        padding: 24px 16px 60px;
+        padding: 26px 16px 60px;
         min-height: 100vh;
     }
 
-    .container { max-width: 980px; margin: auto; }
+    ::selection { background: var(--accent); color: #ffffff; }
 
-    .page-header { text-align: center; margin-bottom: 22px; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg-grid); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+    .container { max-width: 1000px; margin: auto; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .page-header { text-align: center; margin-bottom: 24px; }
     .page-header .eyebrow {
-        font-family: var(--mono); font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
-        color: var(--accent); margin-bottom: 6px;
+        font-family: var(--mono); font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+        color: var(--accent); margin-bottom: 10px; display: inline-flex; align-items: center; gap: 10px;
     }
+    .page-header .eyebrow::before, .page-header .eyebrow::after { content: ""; width: 22px; height: 1px; background: linear-gradient(90deg, transparent, var(--accent)); }
+    .page-header .eyebrow::after { background: linear-gradient(90deg, var(--accent), transparent); }
     h1 {
-        font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: -0.3px;
-        color: var(--text); margin: 0;
+        font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: -0.5px;
+        margin: 0; background: linear-gradient(120deg, var(--text) 5%, var(--accent) 55%, var(--device) 100%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
     }
 
     .credit-strip {
-        display: inline-flex; align-items: center; gap: 14px; margin: 16px auto 0; padding: 10px 18px 10px 10px;
-        background: var(--surface); border: 1px solid var(--border); border-radius: 999px; text-align: left;
+        display: inline-flex; align-items: center; gap: 14px; margin: 18px auto 0; padding: 10px 20px 10px 10px;
+        background: linear-gradient(180deg, var(--surface), var(--bg-grid)); border: 1px solid var(--border);
+        border-radius: 999px; text-align: left; box-shadow: 0 10px 26px -18px rgba(30,41,59,0.28);
     }
     .credit-logo {
         width: 46px; height: 46px; border-radius: 50%; background: #fff; padding: 2px;
-        box-shadow: 0 0 0 1px var(--border); flex-shrink: 0;
+        box-shadow: 0 0 0 1px var(--border), 0 0 14px -2px rgba(31,143,224,0.30); flex-shrink: 0;
     }
     .credit-text { display: flex; flex-direction: column; gap: 2px; }
     .credit-school {
@@ -83,17 +109,82 @@
     }
 
     h2 {
-        font-family: var(--display); font-weight: 600; font-size: 15px; letter-spacing: 0.3px;
-        text-transform: uppercase; color: var(--text-dim); margin: 0 0 14px 0;
-        display: flex; align-items: center; gap: 8px;
+        font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.4px;
+        text-transform: uppercase; color: var(--text-dim); margin: 0 0 16px 0;
+        display: flex; align-items: center; gap: 10px;
     }
-    h2::before {
-        content: ""; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; display: inline-block;
+    h2 .sec-icon {
+        width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0; font-size: 13px;
+        display: inline-flex; align-items: center; justify-content: center;
+        background: color-mix(in srgb, var(--sec-color, var(--accent)) 18%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sec-color, var(--accent)) 45%, transparent);
     }
 
     .section {
-        margin-bottom: 16px; padding: 18px 20px; background: var(--surface);
+        position: relative; margin-bottom: 18px; padding: 20px 22px;
+        background: linear-gradient(180deg, var(--surface), var(--surface-2));
         border: 1px solid var(--border); border-radius: var(--radius);
+        border-top: 2px solid color-mix(in srgb, var(--sec-color, var(--accent)) 60%, var(--border));
+        box-shadow: 0 14px 30px -22px rgba(30,41,59,0.20);
+        animation: fadeInUp .5s ease both;
+        transition: box-shadow .25s ease, border-color .25s ease;
+    }
+    .section:hover { box-shadow: 0 18px 36px -18px color-mix(in srgb, var(--sec-color, var(--accent)) 30%, rgba(30,41,59,0.25)); }
+
+    .section.sec-login    { --sec-color: var(--login); }
+    .section.sec-env      { --sec-color: var(--env); }
+    .section.sec-chart    { --sec-color: var(--chart); }
+    .section.sec-device   { --sec-color: var(--device); }
+    .section.sec-security { --sec-color: var(--security); }
+    .section.sec-weather  { --sec-color: var(--weather); }
+    .section.sec-log      { --sec-color: var(--live); }
+
+    .section.sec-security.is-alarm {
+        border-color: var(--warn);
+        animation: alarmGlow 1.1s ease-in-out infinite;
+    }
+    @keyframes alarmGlow {
+        0%, 100% { box-shadow: 0 14px 30px -22px rgba(30,41,59,0.20), 0 0 0 0 rgba(239,68,68,0.35); }
+        50% { box-shadow: 0 14px 30px -22px rgba(30,41,59,0.20), 0 0 22px 2px rgba(239,68,68,0.45); }
+    }
+
+    .siren-btn-wrap {
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    #btn-siren-toggle {
+        width: 76px; height: 76px; border-radius: 50%; padding: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 34px; border: none; cursor: pointer;
+        background: linear-gradient(135deg, var(--text-faint), var(--border));
+        box-shadow: 0 10px 20px -10px rgba(30,41,59,0.4);
+        transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+    }
+    #btn-siren-toggle:hover { transform: translateY(-1px) scale(1.04); }
+    #btn-siren-toggle .siren-icon { display: inline-block; line-height: 1; }
+    #btn-siren-toggle.siren-on {
+        background: linear-gradient(135deg, var(--warn), var(--amber));
+        animation: sirenPulseRing 0.8s ease-in-out infinite;
+    }
+    #btn-siren-toggle.siren-on .siren-icon { animation: sirenIconFlash 0.4s steps(1) infinite; }
+    #btn-siren-toggle.siren-muted {
+        background: linear-gradient(135deg, var(--surface-2), var(--border));
+        opacity: 0.7;
+    }
+    @keyframes sirenPulseRing {
+        0%, 100% { box-shadow: 0 10px 20px -10px rgba(239,68,68,0.55), 0 0 0 0 rgba(239,68,68,0.45); }
+        50% { box-shadow: 0 10px 20px -10px rgba(239,68,68,0.55), 0 0 0 14px rgba(239,68,68,0); }
+    }
+    @keyframes sirenIconFlash {
+        0%, 49% { opacity: 1; transform: scale(1); }
+        50%, 100% { opacity: 0.3; transform: scale(0.86); }
+    }
+    .siren-status-label {
+        font-family: var(--mono); font-size: 11px; letter-spacing: 0.3px;
+        color: var(--text-dim); text-align: center;
+    }
+    .card.alert.is-alarm {
+        animation: alarmGlow 0.9s ease-in-out infinite;
+        border-color: var(--warn);
     }
 
     label { font-size: 13px; color: var(--text-dim); }
@@ -101,9 +192,12 @@
     input[type="text"], input[type="password"] {
         width: 100%; padding: 11px 12px; margin: 6px 0 16px; background: var(--bg-grid);
         border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--body);
-        font-size: 14px;
+        font-size: 14px; transition: border-color .15s ease, box-shadow .15s ease;
     }
-    input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: var(--accent); }
+    input[type="text"]:focus, input[type="password"]:focus {
+        outline: none; border-color: var(--sec-color, var(--accent));
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--sec-color, var(--accent)) 20%, transparent);
+    }
 
     select {
         padding: 9px 10px; margin: 6px 0; background: var(--bg-grid); border: 1px solid var(--border);
@@ -112,30 +206,60 @@
     select.full { width: 100%; margin: 6px 0 16px; }
 
     button {
-        background: var(--accent); color: #06121a; border: none; padding: 11px 16px; border-radius: 8px;
-        cursor: pointer; font-size: 14px; font-weight: 600; width: 100%; font-family: var(--body);
-        transition: filter .15s ease, transform .1s ease;
+        background: linear-gradient(135deg, var(--sec-color, var(--accent)), var(--accent-2));
+        color: #04121b; border: none; padding: 12px 16px; border-radius: 10px;
+        cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; font-family: var(--body);
+        letter-spacing: 0.1px;
+        box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--sec-color, var(--accent)) 65%, transparent);
+        transition: filter .15s ease, transform .1s ease, box-shadow .15s ease;
     }
-    button:hover { filter: brightness(1.1); }
+    button:hover { filter: brightness(1.1); transform: translateY(-1px); }
     button:active { transform: translateY(1px); }
-    button:disabled { background: var(--text-faint); cursor: not-allowed; color: #0006; }
+    button:disabled { background: var(--text-faint); box-shadow: none; cursor: not-allowed; color: #0006; }
+
+    #btn-gia-lap-dot-nhap {
+        background: linear-gradient(135deg, #ff4757, #ff2e7e);
+        box-shadow: 0 8px 20px -8px rgba(255,71,87,0.55);
+        animation: dangerPulse 2.4s ease-in-out infinite;
+    }
+    #btn-gia-lap-dot-nhap:disabled { animation: none; }
+    @keyframes dangerPulse {
+        0%, 100% { box-shadow: 0 8px 20px -8px rgba(255,71,87,0.45); }
+        50% { box-shadow: 0 10px 30px -6px rgba(255,71,87,0.8); }
+    }
 
     .hint { font-size: 12px; color: var(--text-faint); margin-top: 10px; }
 
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
 
     .card {
-        background: var(--surface-2); border: 1px solid var(--border); padding: 14px; border-radius: 10px;
+        background: var(--surface-2); border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px;
+        transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
     }
-    .card .label { font-size: 11.5px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+    .card:hover {
+        transform: translateY(-2px);
+        border-color: color-mix(in srgb, var(--sec-color, var(--accent)) 50%, var(--border));
+        box-shadow: 0 12px 24px -16px color-mix(in srgb, var(--sec-color, var(--accent)) 45%, transparent);
+    }
+    .card .label {
+        font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px;
+    }
     .card .value {
-        font-family: var(--mono); font-size: 22px; font-weight: 600; color: var(--text); margin-top: 6px;
+        font-family: var(--mono); font-size: 23px; font-weight: 700; color: var(--text); margin-top: 8px;
+        letter-spacing: -0.3px;
     }
+    .card.alert { border-color: color-mix(in srgb, var(--warn) 40%, var(--border)); }
     .card.alert .value { color: var(--warn); }
 
     .device-card {
-        background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+        background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px;
         display: flex; align-items: center; justify-content: space-between;
+        transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .device-card:hover {
+        transform: translateY(-2px);
+        border-color: color-mix(in srgb, var(--sec-color, var(--accent)) 50%, var(--border));
+        box-shadow: 0 12px 24px -16px color-mix(in srgb, var(--sec-color, var(--accent)) 45%, transparent);
     }
     .device-card .name { font-size: 13.5px; }
 
@@ -149,33 +273,59 @@
         position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
         background-color: #cfd6e6; transition: .25s; border-radius: 50%;
     }
-    input:checked + .slider-toggle { background-color: var(--live); border-color: var(--live); }
-    input:checked + .slider-toggle:before { transform: translateX(21px); background: #06251c; }
+    input:checked + .slider-toggle {
+        background-color: var(--sec-color, var(--live)); border-color: var(--sec-color, var(--live));
+        box-shadow: 0 0 10px color-mix(in srgb, var(--sec-color, var(--live)) 55%, transparent);
+    }
+    input:checked + .slider-toggle:before { transform: translateX(21px); background: #06121b; }
+
+    /* Nút bấm dạng biểu tượng: chạm để bật/tắt, sáng lên khi bật */
+    .icon-switch { position: relative; display: inline-flex; cursor: pointer; flex-shrink: 0; }
+    .icon-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .icon-toggle-visual {
+        width: 46px; height: 46px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center;
+        font-size: 21px; background: var(--bg-grid); border: 1px solid var(--border); color: var(--text-faint);
+        filter: grayscale(1) brightness(0.75);
+        transition: filter .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .12s ease;
+        user-select: none;
+    }
+    .icon-switch:hover .icon-toggle-visual { border-color: color-mix(in srgb, var(--dev-color, var(--accent)) 50%, var(--border)); }
+    .icon-switch:active .icon-toggle-visual { transform: scale(0.92); }
+    input:checked + .icon-toggle-visual {
+        background: color-mix(in srgb, var(--dev-color, var(--live)) 22%, var(--surface-2));
+        border-color: var(--dev-color, var(--live));
+        filter: none;
+        box-shadow: 0 0 16px -2px color-mix(in srgb, var(--dev-color, var(--live)) 70%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--dev-color, var(--live)) 40%, transparent);
+        transform: scale(1.05);
+    }
 
     .range-row { display: flex; align-items: center; gap: 10px; }
     input[type=range] {
         flex: 1; -webkit-appearance: none; height: 4px; background: var(--border); border-radius: 3px; outline: none;
     }
     input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent);
-        cursor: pointer; border: 3px solid #06121a;
+        -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+        background: var(--sec-color, var(--accent)); cursor: pointer; border: 3px solid #ffffff;
+        box-shadow: 0 0 10px color-mix(in srgb, var(--sec-color, var(--accent)) 60%, transparent);
     }
 
     #logs {
-        background: #05070c; color: #4fe08a; padding: 12px; font-family: var(--mono); font-size: 11.5px;
+        background: #0b1220; color: #4fe08a; padding: 12px; font-family: var(--mono); font-size: 11.5px;
         height: 140px; overflow-y: scroll; border-radius: 8px; border: 1px solid var(--border); line-height: 1.6;
     }
 
     .toolbar {
-        display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px;
-        flex-wrap: wrap; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border);
-        border-radius: var(--radius);
+        display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px;
+        flex-wrap: wrap; padding: 12px 16px; background: linear-gradient(180deg, var(--surface), var(--surface-2));
+        border: 1px solid var(--border); border-radius: var(--radius);
+        box-shadow: 0 14px 30px -22px rgba(30,41,59,0.20);
     }
     .toolbar button { width: auto; padding: 8px 14px; font-size: 12.5px; }
     .toolbar .btn-ghost {
         background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+        box-shadow: none;
     }
-    .toolbar .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .toolbar .btn-ghost:hover { border-color: var(--accent); color: var(--accent); filter: none; transform: none; }
 
     .status-dot {
         display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint);
@@ -194,10 +344,10 @@
     .seg-group { display: inline-flex; background: var(--bg-grid); border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px; }
     .seg-btn {
         width: auto; padding: 7px 13px; font-size: 12px; font-weight: 600; background: transparent;
-        color: var(--text-dim); border-radius: 6px; border: none;
+        color: var(--text-dim); border-radius: 6px; border: none; box-shadow: none;
     }
-    .seg-btn:hover { filter: none; color: var(--text); }
-    .seg-btn.active { background: var(--accent); color: #06121a; }
+    .seg-btn:hover { filter: none; color: var(--text); transform: none; }
+    .seg-btn.active { background: var(--sec-color, var(--accent)); color: #04121b; }
 
     .date-nav {
         display: flex; align-items: center; justify-content: center; gap: 12px;
@@ -207,8 +357,9 @@
     .nav-btn {
         width: 30px; height: 30px; padding: 0; border-radius: 7px; background: var(--surface);
         border: 1px solid var(--border); color: var(--text); font-size: 15px; line-height: 1; flex-shrink: 0;
+        box-shadow: none;
     }
-    .nav-btn:hover { filter: none; border-color: var(--accent); color: var(--accent); }
+    .nav-btn:hover { filter: none; border-color: var(--sec-color, var(--accent)); color: var(--sec-color, var(--accent)); transform: none; }
     .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: var(--border); color: var(--text-faint); }
     #chart-anchor-label {
         font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text);
@@ -222,6 +373,7 @@
         background: var(--bg-grid); border: 1px solid var(--border); font-size: 12.5px; cursor: pointer;
         color: var(--text-dim); user-select: none; transition: all .15s ease;
     }
+    .chip:hover { border-color: var(--chip-color, var(--accent)); color: var(--text); }
     .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint); }
     .chip.selected { color: var(--text); border-color: var(--chip-color, var(--accent)); background: color-mix(in srgb, var(--chip-color, var(--accent)) 14%, var(--bg-grid)); }
     .chip.selected .dot { background: var(--chip-color, var(--accent)); box-shadow: 0 0 6px var(--chip-color, var(--accent)); }
@@ -229,7 +381,9 @@
     .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
     .chart-card {
         background: var(--bg-grid); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px 14px;
+        transition: border-color .18s ease;
     }
+    .chart-card:hover { border-color: var(--chart); }
     .chart-card .cc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .chart-card .cc-title { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11.5px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; }
     .chart-card .cc-title .dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -238,9 +392,24 @@
     .chart-card .cc-canvas-wrap canvas { cursor: grab; }
     .chart-card .cc-canvas-wrap canvas:active { cursor: grabbing; }
 
+    /* Biểu đồ tròn kiểu vòng tiến độ (gauge) */
+    .chart-card.mode-pie { display: flex; align-items: center; justify-content: center; }
+    .chart-card.mode-pie .cc-header { display: none; }
+    .gauge-wrap { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+    .gauge-center {
+        position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; pointer-events: none;
+    }
+    .gauge-label {
+        font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+        color: var(--text-dim); margin-bottom: 6px;
+    }
+    .gauge-value { font-family: var(--display); font-weight: 700; font-size: 24px; color: var(--text); }
+    .gauge-unit { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-left: 3px; }
+
     @media (max-width: 640px) {
-        h1 { font-size: 21px; }
-        .section { padding: 14px; }
+        h1 { font-size: 22px; }
+        .section { padding: 15px; }
     }
 </style>
 </head>
@@ -261,8 +430,8 @@
     </div>
 
     <!-- Khu vực Đăng nhập -->
-    <div class="section" id="login-section">
-        <h2>Đăng Nhập RainMaker</h2>
+    <div class="section sec-login" id="login-section">
+        <h2><span class="sec-icon">🔑</span>Đăng Nhập RainMaker</h2>
         <label>Máy chủ:</label>
         <select id="region" class="full">
             <option value="https://api.rainmaker.espressif.com/v1">Global (mặc định)</option>
@@ -287,15 +456,15 @@
         </div>
 
         <!-- Thông số môi trường -->
-        <div class="section">
-            <h2>Thông Số Môi Trường</h2>
+        <div class="section sec-env">
+            <h2><span class="sec-icon">🌤️</span>Thông Số Môi Trường</h2>
             <div class="grid">
-                <div class="card"><div class="label">Nhiệt Độ</div><div class="value" id="p-Nhiet_Do">--</div></div>
-                <div class="card"><div class="label">Độ Ẩm</div><div class="value" id="p-Do_Am">--</div></div>
-                <div class="card"><div class="label">Ánh Sáng (Trong)</div><div class="value" id="p-Anh_Sang_Trong">--</div></div>
-                <div class="card"><div class="label">Ánh Sáng (Ngoài)</div><div class="value" id="p-Anh_Sang_Ngoai">--</div></div>
-                <div class="card"><div class="label">Độ Ẩm Đất</div><div class="value" id="p-Do_Am_Dat">--</div></div>
-                <div class="card"><div class="label">Nồng Độ Gas</div><div class="value" id="p-Nong_do_Gas">--</div></div>
+                <div class="card"><div class="label">Nhiệt Độ</div><div class="value" id="p-Nhiet_Do" style="color:var(--c-temp);">--</div></div>
+                <div class="card"><div class="label">Độ Ẩm</div><div class="value" id="p-Do_Am" style="color:var(--c-hum);">--</div></div>
+                <div class="card"><div class="label">Ánh Sáng (Trong)</div><div class="value" id="p-Anh_Sang_Trong" style="color:var(--c-light-in);">--</div></div>
+                <div class="card"><div class="label">Ánh Sáng (Ngoài)</div><div class="value" id="p-Anh_Sang_Ngoai" style="color:var(--c-light-out);">--</div></div>
+                <div class="card"><div class="label">Độ Ẩm Đất</div><div class="value" id="p-Do_Am_Dat" style="color:var(--c-soil);">--</div></div>
+                <div class="card"><div class="label">Nồng Độ Gas</div><div class="value" id="p-Nong_do_Gas" style="color:var(--c-gas);">--</div></div>
                 <div class="card alert"><div class="label">Báo Cháy</div><div class="value" id="p-Bao_Chay">--</div></div>
                 <div class="card alert"><div class="label">Rò Rỉ Gas</div><div class="value" id="p-Ro_ri_Gas">--</div></div>
             </div>
@@ -309,8 +478,8 @@
         </div>
 
         <!-- Biểu đồ cảm biến: tự lưu cục bộ, mỗi thông số 1 biểu đồ riêng -->
-        <div class="section">
-            <h2>Biểu Đồ Cảm Biến</h2>
+        <div class="section sec-chart">
+            <h2><span class="sec-icon">📊</span>Biểu Đồ Cảm Biến</h2>
 
             <div class="chart-controls">
                 <div class="right-group">
@@ -323,6 +492,7 @@
                     <div class="seg-group" id="type-group">
                         <button class="seg-btn active" data-type="line" onclick="setChartType('line')">📈 Line</button>
                         <button class="seg-btn" data-type="bar" onclick="setChartType('bar')">📊 Bar</button>
+                        <button class="seg-btn" data-type="pie" onclick="setChartType('pie')">🥧 Tròn</button>
                     </div>
                 </div>
                 <div class="right-group">
@@ -344,38 +514,49 @@
         </div>
 
         <!-- Đèn & Quạt & Thiết bị -->
-        <div class="section">
-            <h2>Điều Khiển Thiết Bị</h2>
+        <div class="section sec-device">
+            <h2><span class="sec-icon">💡</span>Điều Khiển Thiết Bị</h2>
             <div class="grid" id="switch-devices"></div>
         </div>
 
         <!-- An ninh -->
-        <div class="section">
-            <h2>An Ninh</h2>
+        <div class="section sec-security" id="security-section">
+            <h2><span class="sec-icon">🛡️</span>An Ninh</h2>
             <div class="grid">
-                <div class="card"><div class="label">Trạng Thái An Ninh</div><div class="value" id="p-Trang_Thai_An_Ninh" style="font-size:15px;">--</div></div>
+                <div class="card" id="security-status-card"><div class="label">Trạng Thái An Ninh</div><div class="value" id="p-Trang_Thai_An_Ninh" style="font-size:15px;">--</div></div>
             </div>
             <div class="grid" style="margin-top:10px;">
                 <div class="device-card">
                     <span class="name">Chế độ Quản Lý Thẻ RFID</span>
-                    <label class="switch">
+                    <label class="icon-switch" style="--dev-color: var(--security);">
                         <input type="checkbox" id="sw-An_Ninh-Quan_Ly_The" onchange="toggleParam('An Ninh','Quan Ly The', this.checked)">
-                        <span class="slider-toggle"></span>
+                        <span class="icon-toggle-visual">🪪</span>
                     </label>
                 </div>
                 <div class="device-card">
                     <span class="name">Chế độ Đổi Mật Khẩu</span>
-                    <label class="switch">
+                    <label class="icon-switch" style="--dev-color: var(--security);">
                         <input type="checkbox" id="sw-An_Ninh-Doi_Mat_Khau" onchange="toggleParam('An Ninh','Doi Mat Khau', this.checked)">
-                        <span class="slider-toggle"></span>
+                        <span class="icon-toggle-visual">🔐</span>
                     </label>
+                </div>
+            </div>
+            <div class="grid" style="margin-top:10px;">
+                <button id="btn-gia-lap-dot-nhap" onclick="giaLapDotNhap()">🚨 Giả Lập Đột Nhập (Chuông + Camera)</button>
+            </div>
+            <div class="grid" style="margin-top:10px;">
+                <div class="siren-btn-wrap">
+                    <button id="btn-siren-toggle" type="button" onclick="toggleSirenMute()" title="Bấm để bật/tắt tiếng còi web" aria-label="Còi báo động Web">
+                        <span class="siren-icon" id="siren-status-icon">🔔</span>
+                    </button>
+                    <span class="siren-status-label" id="siren-status-label">Còi Web: Sẵn Sàng</span>
                 </div>
             </div>
         </div>
 
         <!-- Giàn phơi -->
-        <div class="section">
-            <h2>Giàn Phơi</h2>
+        <div class="section sec-weather">
+            <h2><span class="sec-icon">👕</span>Giàn Phơi</h2>
             <div class="grid">
                 <div class="card"><div class="label">Thời Tiết</div><div class="value" id="p-Thoi_Tiet" style="font-size:15px;">--</div></div>
             </div>
@@ -383,8 +564,8 @@
     </div>
 
     <!-- Khu vực Log hệ thống -->
-    <div class="section">
-        <h2>Log Hệ Thống</h2>
+    <div class="section sec-log">
+        <h2><span class="sec-icon">📜</span>Log Hệ Thống</h2>
         <div id="logs">Đang chờ lệnh...<br></div>
     </div>
 </div>
@@ -398,25 +579,25 @@
     const AUTO_SYNC_MS = 2500; // đồng bộ trạng thái thiết bị mỗi 2.5 giây (nhanh nhất có thể an toàn với polling REST, tránh bị API chặn 429)
 
     const SWITCH_DEVICES = [
-        { id: "Den Phong Khach",  label: "💡 Đèn Phòng Khách" },
-        { id: "Den Phong Ngu",    label: "💡 Đèn Phòng Ngủ" },
-        { id: "Den Bep",          label: "💡 Đèn Bếp" },
-        { id: "Den WC",           label: "💡 Đèn WC" },
-        { id: "Quat Phong Khach", label: "🌀 Quạt Phòng Khách" },
-        { id: "Quat Phong Ngu",   label: "🌀 Quạt Phòng Ngủ" },
-        { id: "Quat Bep",         label: "🌀 Quạt Bếp" },
-        { id: "May Bom",          label: "🚰 Máy Bơm" },
-        { id: "Rem Cua",          label: "🪟 Rèm Cửa" },
+        { id: "Den Phong Khach",  icon: "💡", name: "Đèn Phòng Khách",   color: "#ffd166" },
+        { id: "Den Phong Ngu",    icon: "💡", name: "Đèn Phòng Ngủ",     color: "#ffd166" },
+        { id: "Den Bep",          icon: "💡", name: "Đèn Bếp",           color: "#ffd166" },
+        { id: "Den WC",           icon: "💡", name: "Đèn WC",            color: "#ffd166" },
+        { id: "Quat Phong Khach", icon: "🌀", name: "Quạt Phòng Khách",  color: "#33c7ff" },
+        { id: "Quat Phong Ngu",   icon: "🌀", name: "Quạt Phòng Ngủ",    color: "#33c7ff" },
+        { id: "Quat Bep",         icon: "🌀", name: "Quạt Bếp",          color: "#33c7ff" },
+        { id: "May Bom",          icon: "🚰", name: "Máy Bơm",           color: "#5eead4" },
+        { id: "Rem Cua",          icon: "🪟", name: "Rèm Cửa",           color: "#a78bfa" },
     ];
 
     // Danh sách tham số có thể vẽ biểu đồ (khớp với key trong nhóm "Moi Truong")
     const PARAM_DEFS = [
-        { key: "Nhiet Do",       label: "Nhiệt Độ",         unit: "°C",  color: "--c-temp" },
-        { key: "Do Am",          label: "Độ Ẩm",            unit: "%",   color: "--c-hum" },
-        { key: "Anh Sang Trong", label: "Ánh Sáng Trong",   unit: "Lux", color: "--c-light-in" },
-        { key: "Anh Sang Ngoai", label: "Ánh Sáng Ngoài",   unit: "Lux", color: "--c-light-out" },
-        { key: "Do Am Dat",      label: "Độ Ẩm Đất",        unit: "%",   color: "--c-soil" },
-        { key: "Nong do Gas",    label: "Nồng Độ Gas",      unit: "",    color: "--c-gas" },
+        { key: "Nhiet Do",       label: "Nhiệt Độ",         unit: "°C",  color: "--c-temp",      min: 0, max: 50 },
+        { key: "Do Am",          label: "Độ Ẩm",            unit: "%",   color: "--c-hum",       min: 0, max: 100 },
+        { key: "Anh Sang Trong", label: "Ánh Sáng Trong",   unit: "Lux", color: "--c-light-in",  min: 0, max: 1000 },
+        { key: "Anh Sang Ngoai", label: "Ánh Sáng Ngoài",   unit: "Lux", color: "--c-light-out", min: 0, max: 1000 },
+        { key: "Do Am Dat",      label: "Độ Ẩm Đất",        unit: "%",   color: "--c-soil",      min: 0, max: 100 },
+        { key: "Nong do Gas",    label: "Nồng Độ Gas",      unit: "",    color: "--c-gas",       min: 0, max: 100 },
     ];
     let selectedParams = new Set(["Nhiet Do", "Do Am"]);
     let latestSensorValues = {}; // { paramKey: number } - giá trị mới nhất, cập nhật mỗi lần đồng bộ trạng thái thiết bị
@@ -646,10 +827,10 @@
             const card = document.createElement('div');
             card.className = 'device-card';
             card.innerHTML = `
-                <span class="name">${dev.label}</span>
-                <label class="switch">
+                <span class="name">${dev.name}</span>
+                <label class="icon-switch" style="--dev-color:${dev.color};">
                     <input type="checkbox" id="sw-${safeId}" onchange="toggleParam('${dev.id}','Power', this.checked)">
-                    <span class="slider-toggle"></span>
+                    <span class="icon-toggle-visual">${dev.icon}</span>
                 </label>`;
             container.appendChild(card);
         });
@@ -778,6 +959,15 @@
                 setText('p-Nong_do_Gas', mt["Nong do Gas"], "");
                 setText('p-Bao_Chay', mt["Bao Chay"], "");
                 setText('p-Ro_ri_Gas', mt["Ro ri Gas"], "");
+
+                // Cập nhật cảnh báo Báo Cháy / Rò Rỉ Gas: chớp thẻ đỏ + kích còi web
+                const coBaoChay = isTrangThaiCanhBao(mt["Bao Chay"], "CO LUA");
+                const coRoRiGas = isTrangThaiCanhBao(mt["Ro ri Gas"], "CO GAS");
+                document.getElementById('p-Bao_Chay')?.closest('.card')?.classList.toggle('is-alarm', coBaoChay);
+                document.getElementById('p-Ro_ri_Gas')?.closest('.card')?.classList.toggle('is-alarm', coRoRiGas);
+                alarmState.chay = coBaoChay;
+                alarmState.gas = coRoRiGas;
+                capNhatCoiTheoTongTrangThai();
                 const slider = document.getElementById('nguong-sang-slider');
                 if (typeof mt["Nguong Sang"] !== 'undefined' && document.activeElement !== slider) {
                     slider.value = mt["Nguong Sang"];
@@ -786,7 +976,14 @@
 
                 // Giá trị hiện tại hiển thị trên card biểu đồ (lịch sử vẫn lấy trực tiếp từ Cloud khi vẽ)
                 PARAM_DEFS.forEach(p => { if (typeof mt[p.key] === 'number') latestSensorValues[p.key] = mt[p.key]; });
-                Object.keys(chartInstances).forEach(k => updateChartCardValue(k));
+                Object.keys(chartInstances).forEach(k => {
+                    updateChartCardValue(k);
+                    if (chartType === 'pie') {
+                        const card = document.getElementById(`chart-card-${safeKey(k)}`);
+                        const wrap = card && card.querySelector('.cc-canvas-wrap');
+                        if (wrap) renderGaugeInto(wrap, k, paramDef(k), []);
+                    }
+                });
             }
 
             const an = data["An Ninh"];
@@ -796,6 +993,13 @@
                 const sw2 = document.getElementById('sw-An_Ninh-Doi_Mat_Khau');
                 if (typeof an["Quan Ly The"] !== 'undefined' && document.activeElement !== sw1) sw1.checked = !!an["Quan Ly The"];
                 if (typeof an["Doi Mat Khau"] !== 'undefined' && document.activeElement !== sw2) sw2.checked = !!an["Doi Mat Khau"];
+
+                // Khung An Ninh nhấp nháy viền đỏ khi trạng thái không còn "Binh thuong"
+                const trangThai = an["Trang Thai An Ninh"] || "";
+                const dangCanhBao = typeof trangThai === 'string' && trangThai.trim() !== "" && trangThai.trim().toLowerCase() !== "binh thuong";
+                document.getElementById('security-section').classList.toggle('is-alarm', dangCanhBao);
+                alarmState.anNinh = dangCanhBao;
+                capNhatCoiTheoTongTrangThai();
             }
 
             const gp = data["Gian Phoi"];
@@ -831,6 +1035,119 @@
         } catch (error) {
             logMessage("Lỗi khi gửi lệnh điều khiển: " + error);
         }
+    }
+
+    // Nút nhấn giả lập đột nhập: gửi Gia Lap Dot Nhap = true, firmware sẽ tự kích chuông + camera
+    // rồi tự trả tham số về false, nên ở đây không cần đọc lại trạng thái, chỉ khoá nút ít giây
+    // để tránh bấm liên tục gây spam lệnh lên Cloud.
+    // ==== CÒI BÁO ĐỘNG TRÊN WEB (Web Audio API — tự tạo âm thanh, không cần file mp3) ====
+    // Trạng thái cảnh báo hiện tại của 3 nguồn: An Ninh / Báo Cháy / Rò Rỉ Gas -> còi web kêu khi bất kỳ nguồn nào đang cảnh báo
+    let alarmState = { anNinh: false, chay: false, gas: false };
+    function isCanhBaoTruthy(v) { return v === true || v === 1 || v === '1'; }
+    // Bao Chay / Ro ri Gas trả về chuỗi trạng thái tiếng Việt (vd "CO LUA", "CO GAS"), không phải boolean
+    function isTrangThaiCanhBao(v, tuKhoaCanhBao) {
+        return typeof v === 'string' && v.trim().toUpperCase() === tuKhoaCanhBao;
+    }
+    function capNhatCoiTheoTongTrangThai() {
+        const dangCoCanhBao = alarmState.anNinh || alarmState.chay || alarmState.gas;
+        if (dangCoCanhBao) startSiren(); else stopSiren();
+    }
+
+    let audioCtx = null;
+    let sirenOsc = null;
+    let sirenGain = null;
+    let sirenInterval = null;
+    let sirenActive = false;
+    let sirenMuted = localStorage.getItem('sirenMuted') === '1';
+
+    function ensureAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+    }
+
+    // Trình duyệt chặn phát âm thanh tự động -> "mở khóa" ngay khi người dùng chạm/click lần đầu vào trang
+    ['click', 'touchstart', 'keydown'].forEach(evt => {
+        document.addEventListener(evt, () => ensureAudioCtx(), { once: true, passive: true });
+    });
+
+    function startSiren() {
+        if (sirenActive || sirenMuted) return;
+        let ctx;
+        try { ctx = ensureAudioCtx(); } catch (e) { return; } // trình duyệt chưa cho phép -> chờ người dùng tương tác
+        sirenActive = true;
+
+        sirenOsc = ctx.createOscillator();
+        sirenGain = ctx.createGain();
+        sirenOsc.type = 'square';
+        sirenOsc.frequency.value = 1400;
+        sirenGain.gain.value = 0;
+        sirenOsc.connect(sirenGain).connect(ctx.destination);
+        sirenOsc.start();
+
+        // Kiểu "bíp - bíp ... (nghỉ) ... bíp - bíp" giống còi báo động thật
+        const VOL = 0.16;
+        const pattern = [0.12, 0.10, 0.12, 0.45]; // [bíp1, nghỉ ngắn, bíp2, nghỉ dài] tính bằng giây
+        let step = 0;
+        function beepStep() {
+            if (!sirenActive || !sirenGain) return;
+            const isOn = (step % 2 === 0);
+            sirenGain.gain.setValueAtTime(isOn ? VOL : 0, ctx.currentTime);
+            const waitSec = pattern[step];
+            step = (step + 1) % pattern.length;
+            sirenInterval = setTimeout(beepStep, waitSec * 1000);
+        }
+        beepStep();
+
+        updateSirenButton();
+    }
+
+    function stopSiren() {
+        sirenActive = false;
+        if (sirenInterval) { clearTimeout(sirenInterval); sirenInterval = null; }
+        if (sirenOsc) { try { sirenOsc.stop(); } catch (e) {} sirenOsc.disconnect(); sirenOsc = null; }
+        if (sirenGain) { sirenGain.disconnect(); sirenGain = null; }
+        updateSirenButton();
+    }
+
+    function toggleSirenMute() {
+        sirenMuted = !sirenMuted;
+        localStorage.setItem('sirenMuted', sirenMuted ? '1' : '0');
+        ensureAudioCtx();
+        if (sirenMuted) stopSiren();
+        updateSirenButton();
+    }
+
+    function updateSirenButton() {
+        const btn = document.getElementById('btn-siren-toggle');
+        const icon = document.getElementById('siren-status-icon') || btn?.querySelector('.siren-icon');
+        const label = document.getElementById('siren-status-label');
+        if (!btn) return;
+        btn.classList.remove('siren-on', 'siren-muted');
+        if (sirenMuted) {
+            if (icon) icon.textContent = '🔇';
+            if (label) label.textContent = 'Còi Web: Đã Tắt Tiếng';
+            btn.classList.add('siren-muted');
+        } else if (sirenActive) {
+            if (icon) icon.textContent = '🚨';
+            if (label) label.textContent = 'Còi Web: ĐANG KÊU';
+            btn.classList.add('siren-on');
+        } else {
+            if (icon) icon.textContent = '🔔';
+            if (label) label.textContent = 'Còi Web: Sẵn Sàng';
+        }
+    }
+
+    // Khởi tạo trạng thái nút ngay khi trang tải xong
+    document.addEventListener('DOMContentLoaded', updateSirenButton);
+
+    async function giaLapDotNhap() {
+        const btn = document.getElementById('btn-gia-lap-dot-nhap');
+        if (btn) { btn.disabled = true; btn.textContent = '🚨 Đang kích hoạt...'; }
+        await toggleParam('An Ninh', 'Gia Lap Dot Nhap', true);
+        setTimeout(() => {
+            if (btn) { btn.disabled = false; btn.textContent = '🚨 Giả Lập Đột Nhập (Chuông + Camera)'; }
+        }, 3000);
     }
 
     let nguongSangDebounce = null;
@@ -886,7 +1203,8 @@
         return chartLibPromise;
     }
 
-    let chartInstances = {}; // paramKey -> Chart instance
+    let chartInstances = {}; // paramKey -> Chart instance (đối tượng giả cho gauge có .destroy() no-op)
+    let lastChartMode = null;
 
     function buildParamChips() {
         const wrap = document.getElementById('param-chips');
@@ -924,8 +1242,7 @@
         if (type === chartType) return;
         chartType = type;
         document.querySelectorAll('#type-group .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
-        // Đổi loại biểu đồ (line <-> bar) cần khởi tạo lại toàn bộ instance Chart.js
-        Object.keys(chartInstances).forEach(key => { chartInstances[key].destroy(); delete chartInstances[key]; });
+        // renderCharts() sẽ tự dọn sạch và vẽ lại toàn bộ vì phát hiện lastChartMode thay đổi
         renderCharts();
     }
 
@@ -949,9 +1266,9 @@
         return 'Tháng ' + (d.getMonth() + 1) + '/' + d.getFullYear();
     }
 
-    function createChartCard(key, def) {
+    function createChartCard(key, def, mode) {
         const card = document.createElement('div');
-        card.className = 'chart-card';
+        card.className = 'chart-card' + (mode === 'pie' ? ' mode-pie' : '');
         card.id = `chart-card-${safeKey(key)}`;
         card.innerHTML = `
             <div class="cc-header">
@@ -962,7 +1279,49 @@
         return card;
     }
 
+    // Giá trị đại diện cho gauge: dùng giá trị hiện tại (khớp với ô giá trị phía trên), không phải trung bình cả kỳ
+    function computeGaugeValue(key, points) {
+        if (typeof latestSensorValues[key] === 'number') return latestSensorValues[key];
+        if (points.length) return points[points.length - 1].y;
+        return null;
+    }
+
+    // Vẽ vòng tròn tiến độ (gauge) kiểu gradient xanh dương -> xanh lá, giống mẫu người dùng cung cấp
+    function renderGaugeInto(wrapEl, key, def, points) {
+        const value = computeGaugeValue(key, points);
+        const min = typeof def.min === 'number' ? def.min : 0;
+        const max = typeof def.max === 'number' ? def.max : 100;
+        const pct = value === null ? 0 : Math.min(1, Math.max(0, (value - min) / (max - min)));
+
+        const size = 132, stroke = 12, r = (size - stroke) / 2, c = 2 * Math.PI * r;
+        const dash = c * pct;
+        const gradId = `gauge-grad-${safeKey(key)}`;
+
+        wrapEl.innerHTML = `
+            <div class="gauge-wrap">
+                <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+                    <defs>
+                        <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#2563eb"/>
+                            <stop offset="100%" stop-color="#22c55e"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#c7cfe0" stroke-width="${stroke}"/>
+                    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="url(#${gradId})"
+                        stroke-width="${stroke}" stroke-linecap="round"
+                        stroke-dasharray="${dash} ${Math.max(0, c - dash)}"
+                        transform="rotate(-90 ${size / 2} ${size / 2})"/>
+                </svg>
+                <div class="gauge-center">
+                    <div class="gauge-label">${def.label}</div>
+                    <div class="gauge-value">${value === null ? '--' : value}${def.unit ? `<span class="gauge-unit">${def.unit}</span>` : ''}</div>
+                </div>
+            </div>`;
+    }
+
+
     function makeChartInstance(key, def, points) {
+
         const ctx = document.getElementById(`canvas-${safeKey(key)}`).getContext('2d');
         const color = cssVar(def.color);
         const isBar = chartType === 'bar';
@@ -999,22 +1358,22 @@
                 scales: {
                     x: {
                         type: 'linear',
-                        grid: { color: '#1c2438' },
+                        grid: { color: '#e6eaf3' },
                         ticks: {
-                            color: '#8592ac', font: { family: 'JetBrains Mono', size: 10 }, maxRotation: 0,
+                            color: '#7c879e', font: { family: 'JetBrains Mono', size: 10 }, maxRotation: 0,
                             callback: (val) => formatTickForPeriod(val)
                         }
                     },
                     y: {
-                        grid: { color: '#1c2438' },
+                        grid: { color: '#e6eaf3' },
                         ticks: { color: color, font: { family: 'JetBrains Mono', size: 10 } }
                     }
                 },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: '#121828', borderColor: '#232d45', borderWidth: 1,
-                        titleColor: '#e9edf7', bodyColor: '#e9edf7', titleFont: { family: 'JetBrains Mono', size: 11 },
+                        backgroundColor: '#1b2436', borderColor: '#2b3654', borderWidth: 1,
+                        titleColor: '#f4f6fb', bodyColor: '#f4f6fb', titleFont: { family: 'JetBrains Mono', size: 11 },
                         bodyFont: { family: 'JetBrains Mono', size: 11 },
                         callbacks: {
                             title: (items) => items.length ? formatTooltipTitleForPeriod(items[0].parsed.x) : '',
@@ -1046,14 +1405,24 @@
     }
 
     async function renderCharts() {
-        if (!window.Chart) return; // chưa nạp xong thư viện, sẽ tự gọi lại sau khi nạp xong
+        if (chartType !== 'pie' && !window.Chart) return; // chưa nạp xong thư viện, sẽ tự gọi lại sau khi nạp xong
         const grid = document.getElementById('chart-grid');
         const keysOrdered = PARAM_DEFS.map(p => p.key).filter(k => selectedParams.has(k));
+
+        // Đổi kiểu biểu đồ (line/bar <-> tròn) -> dọn sạch lưới để vẽ lại từ đầu
+        if (lastChartMode !== chartType) {
+            Object.keys(chartInstances).forEach(k => {
+                if (chartInstances[k] && typeof chartInstances[k].destroy === 'function') chartInstances[k].destroy();
+            });
+            chartInstances = {};
+            grid.innerHTML = '';
+            lastChartMode = chartType;
+        }
 
         // Gỡ biểu đồ không còn được chọn
         Object.keys(chartInstances).forEach(key => {
             if (!selectedParams.has(key)) {
-                chartInstances[key].destroy();
+                if (chartInstances[key] && typeof chartInstances[key].destroy === 'function') chartInstances[key].destroy();
                 delete chartInstances[key];
                 const card = document.getElementById(`chart-card-${safeKey(key)}`);
                 if (card) card.remove();
@@ -1070,7 +1439,7 @@
 
             let card = document.getElementById(`chart-card-${safeKey(key)}`);
             if (!card) {
-                card = createChartCard(key, def);
+                card = createChartCard(key, def, chartType);
                 grid.appendChild(card);
             } else {
                 grid.appendChild(card); // giữ đúng thứ tự PARAM_DEFS
@@ -1079,7 +1448,11 @@
 
             const points = await getSeriesForKeyPeriod(key, chartPeriod);
 
-            if (!chartInstances[key]) {
+            if (chartType === 'pie') {
+                const wrap = card.querySelector('.cc-canvas-wrap');
+                renderGaugeInto(wrap, key, def, points);
+                if (!chartInstances[key]) chartInstances[key] = { destroy() {} };
+            } else if (!chartInstances[key]) {
                 chartInstances[key] = makeChartInstance(key, def, points);
             } else {
                 chartInstances[key].data.datasets[0].data = points;
