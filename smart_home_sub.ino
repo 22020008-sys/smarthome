@@ -72,9 +72,9 @@ void initAllDevices() {
   pinMode(PIN_LED_WC,  OUTPUT); digitalWrite(PIN_LED_WC,  LOW);
   Serial.println(F("[SUB-LED] Da khoi tao cac LED con lai (GPIO 5, 18, 19) o muc LOW"));
 
-  pinMode(RELAY_FAN_KHACH,  OUTPUT); digitalWrite(RELAY_FAN_KHACH,  HIGH); 
-  pinMode(RELAY_FAN_NGU,    OUTPUT); digitalWrite(RELAY_FAN_NGU,    HIGH);
-  pinMode(RELAY_FAN_BEP,    OUTPUT); digitalWrite(RELAY_FAN_BEP,    HIGH);
+  pinMode(RELAY_FAN_KHACH,  OUTPUT); digitalWrite(RELAY_FAN_KHACH,  LOW); 
+  pinMode(RELAY_FAN_NGU,    OUTPUT); digitalWrite(RELAY_FAN_NGU,    LOW);
+  pinMode(RELAY_FAN_BEP,    OUTPUT); digitalWrite(RELAY_FAN_BEP,    LOW);
   pinMode(RELAY_MAY_BOM,    OUTPUT); digitalWrite(RELAY_MAY_BOM,    LOW);  
   Serial.println(F("[SUB-RELAY] Da khoi tao cac Relay Quat & May Bom"));
 }
@@ -102,17 +102,17 @@ void setDeviceState(String name, bool state) {
   }
   else if (name == "QK") { 
     state_qk = state;
-    digitalWrite(RELAY_FAN_KHACH,  state ? LOW : HIGH); 
+    digitalWrite(RELAY_FAN_KHACH,  state ? HIGH : LOW); 
     Serial.printf("[SUB-LOG] Quat Phong Khach -> %s\n", state ? "BAT" : "TAT");
   }
   else if (name == "QN") { 
     state_qn = state;
-    digitalWrite(RELAY_FAN_NGU,    state ? LOW : HIGH); 
+    digitalWrite(RELAY_FAN_NGU,    state ? HIGH : LOW); 
     Serial.printf("[SUB-LOG] Quat Phong Ngu -> %s\n", state ? "BAT" : "TAT");
   }
   else if (name == "QB") { 
     state_qb = state;
-    digitalWrite(RELAY_FAN_BEP,    state ? LOW : HIGH); 
+    digitalWrite(RELAY_FAN_BEP,    state ? HIGH : LOW); 
     Serial.printf("[SUB-LOG] Quat Bep -> %s\n", state ? "BAT" : "TAT");
   }
   else if (name == "MB") { 
