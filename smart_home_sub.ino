@@ -7,14 +7,14 @@
 // ==============================================================================
 // 1. KHAI BÁO CHÂN THIẾT BỊ VÀ ĐÈN LED 
 // ==============================================================================
-#define MAIN_TX_PIN         17  // Nối vào RX(18) của Main
-#define MAIN_RX_PIN         16  // Nối vào TX(17) của Main
+#define MAIN_TX_PIN         17  
+#define MAIN_RX_PIN         16  
 
 // -- Cảm biến --
-#define SOIL_MOISTURE_PIN   34  // Chân Analog đọc Cảm biến độ ẩm đất
+#define SOIL_MOISTURE_PIN   34  
 
 // -- Hệ thống LED Đèn --
-#define PIN_LED_KHACH       4   // LED Phòng Khách (Hỗ trợ PWM tự động điều chỉnh độ sáng)
+#define PIN_LED_KHACH       4  
 #define PIN_LED_NGU         5   
 #define PIN_LED_BEP         18  
 #define PIN_LED_WC          19  
