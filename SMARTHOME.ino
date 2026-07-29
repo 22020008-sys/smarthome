@@ -1,4 +1,4 @@
-/*
+*
  * ============================================================
  * SMART HOME - MAIN (OPTIMIZED VERSION)
  * ============================================================
@@ -72,10 +72,10 @@ const int stepMatrix[8][4] = {
   {1, 0, 0, 0}, {1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 0},
   {0, 0, 1, 0}, {0, 0, 1, 1}, {0, 0, 0, 1}, {1, 0, 0, 1}
 };
-long so_buoc_mo_rem = 10000; 
+long so_buoc_mo_rem = 9000; 
 volatile long current_step_pos = 0; 
 volatile long target_step_pos  = 0; 
-int stepDelay = 5;
+int stepDelay = 3;
 TaskHandle_t StepperTask;
 
 // ==============================================================================
@@ -109,7 +109,7 @@ unsigned long lastSensorSendTick = 0;
 unsigned long oledMessageTimer = 0;
 #define OLED_MSG_DURATION 2000
 
-// --- THÔNG SỐ TỰ ĐỘNG ĐIỀU CHỈNH ĐÈN PHÒNG KHÁCH ---
+// --- THÔNG SỐ TỰ ĐỘNG ĐIỀU CHỈNH ĐÈN  ---
 int target_lux = 300;           
 #define LUX_TOLERANCE       20   
 #define PWM_STEP            15   
@@ -239,7 +239,7 @@ void handleSubSerial() {
 // HỆ THỐNG TỰ ĐỘNG ĐIỀU CHỈNH ĐỘ SÁNG LED & BÙ SÁNG BẰNG RÈM CỬA
 // ==============================================================================
 void xuLyTuDongAnhSang() {
-  if (!state_den_khach) return;
+  if (!state_den_ngu) return;
 
   lux_trong = (int)bh1750_trong.readLightLevel();
   if (lux_trong < 0) return; 
