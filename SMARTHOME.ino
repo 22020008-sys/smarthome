@@ -95,7 +95,7 @@ byte validCards[MAX_CARDS][4];
 int numCards = 0;
 bool quanLyTheMode = false;
 bool doiMatKhauMode = false;
-bool isArmed = true;
+bool isArmed = true; // Chế độ an ninh (Mặc định bật)
 
 BH1750 bh1750_trong(0x23); 
 BH1750 bh1750_ngoai(0x5C);
@@ -125,7 +125,7 @@ unsigned long lastAutoLightTime = 0;
 #define CLOSED_POS          0
 #define OPEN_POS            90
 #define CLOTHES_OUT_POS     0   
-#define CLOTHES_IN_POS      90 
+#define CLOTHES_IN_POS      130 
 
 #define SERVO_FREQ          50 
 #define SERVO_RES           14 
