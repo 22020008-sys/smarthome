@@ -1,4 +1,4 @@
-*
+/*
  * ============================================================
  * SMART HOME - MAIN (OPTIMIZED VERSION)
  * ============================================================
@@ -113,10 +113,10 @@ unsigned long oledMessageTimer = 0;
 int target_lux = 300;           
 #define LUX_TOLERANCE       20   
 #define PWM_STEP            15   
-#define MIN_PWM_DK          10   
-#define MAX_PWM_DK          255  
+#define MIN_PWM_DN          10   
+#define MAX_PWM_DN          255  
 
-int current_pwm_dk = 255;     
+int current_pwm_dn = 255;     
 unsigned long lastAutoLightTime = 0;
 
 // ==============================================================================
@@ -156,6 +156,9 @@ bool intrusionDetected      = false;
 bool forcedEntryAlarm       = false;
 unsigned long forcedEntryAlarmStart = 0;
 #define FORCED_ALARM_DURATION  15000UL
+bool simulatedIntrusion            = false; // Giả lập đột nhập từ nút nhấn trên App
+unsigned long simulatedIntrusionStart = 0;
+#define SIMULATED_ALARM_DURATION  15000UL
 bool buzzerBlinkState       = false; 
 bool fireDetected           = false;
 bool gasDetected            = false;
@@ -205,14 +208,14 @@ void syncAllDevices() {
 
 void capNhatTuSub(const String &maDevice, int value) {
   bool state = (value == 1);
-  if (maDevice == "DK") { 
-    state_den_khach = state; 
-    den_khach.updateAndReportParam("Power", state); 
+  if (maDevice == "DN") { 
+    state_den_ngu = state; 
+    den_ngu.updateAndReportParam("Power", state); 
     prefs.putBool("den_khach", state);
-    if (state) current_pwm_dk = MAX_PWM_DK;
-    else current_pwm_dk = 0;
+    if (state) current_pwm_dn = MAX_PWM_DN;
+    else current_pwm_dn = 0;
   }
-  else if (maDevice == "DN") { state_den_ngu = state; den_ngu.updateAndReportParam("Power", state); prefs.putBool("den_ngu", state); }
+  else if (maDevice == "DK") { state_den_khach = state; den_khach.updateAndReportParam("Power", state); prefs.putBool("den_khach", state); }
   else if (maDevice == "DB") { state_den_bep = state; den_bep.updateAndReportParam("Power", state); prefs.putBool("den_bep", state); }
   else if (maDevice == "DW") { state_den_wc = state; den_wc.updateAndReportParam("Power", state); prefs.putBool("den_wc", state); }
   else if (maDevice == "QK") { state_quat_khach = state; quat_khach.updateAndReportParam("Power", state); prefs.putBool("quat_khach", state); }
@@ -247,12 +250,12 @@ void xuLyTuDongAnhSang() {
   bool canCapNhatPwm = false;
 
   if (lux_trong < (target_lux - LUX_TOLERANCE)) {
-    if (current_pwm_dk < MAX_PWM_DK) {
-      current_pwm_dk += PWM_STEP;
-      if (current_pwm_dk > MAX_PWM_DK) current_pwm_dk = MAX_PWM_DK;
+    if (current_pwm_dn < MAX_PWM_DN) {
+      current_pwm_dn += PWM_STEP;
+      if (current_pwm_dn > MAX_PWM_DN) current_pwm_dn = MAX_PWM_DN;
       canCapNhatPwm = true;
     } 
-    if (current_pwm_dk >= MAX_PWM_DK && !state_rem_cua) {
+    if (current_pwm_dn >= MAX_PWM_DN && !state_rem_cua) {
       state_rem_cua = true;
       target_step_pos = so_buoc_mo_rem; 
       rem_cua.updateAndReportParam("Power", true);
@@ -260,9 +263,9 @@ void xuLyTuDongAnhSang() {
     }
   }
   else if (lux_trong > (target_lux + LUX_TOLERANCE)) {
-    if (current_pwm_dk > MIN_PWM_DK) {
-      current_pwm_dk -= PWM_STEP;
-      if (current_pwm_dk < MIN_PWM_DK) current_pwm_dk = MIN_PWM_DK;
+    if (current_pwm_dn > MIN_PWM_DN) {
+      current_pwm_dn -= PWM_STEP;
+      if (current_pwm_dn < MIN_PWM_DN) current_pwm_dn = MIN_PWM_DN;
       canCapNhatPwm = true;
     }
     else if (state_rem_cua) {
@@ -274,7 +277,7 @@ void xuLyTuDongAnhSang() {
   }
   
   if (canCapNhatPwm) {
-    Serial1.printf("CMD:DK_PWM:%d\n", current_pwm_dk);
+    Serial1.printf("CMD:DN_PWM:%d\n", current_pwm_dn);
   }
 }
 
@@ -431,6 +434,20 @@ void taskChupAnhCamera(void *pvParameters) {
   vTaskDelete(NULL);
 }
 
+// ==============================================================================
+// NÚT NHẤN GIẢ LẬP ĐỘT NHẬP (Điều khiển từ App RainMaker)
+// ==============================================================================
+void kichHoatGiaLapDotNhap() {
+  Serial.println(F("[LOG] Da kich hoat GIA LAP DOT NHAP tu App!"));
+  simulatedIntrusion = true;
+  simulatedIntrusionStart = millis();
+  thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "GIA LAP DOT NHAP");
+  // Kích hoạt camera chụp ảnh ngay lập tức (không chặn luồng chính)
+  xTaskCreate(taskChupAnhCamera, "CameraTaskSim", 4096, NULL, 1, NULL);
+  // Trả nút về trạng thái OFF ngay để App hiển thị như một nút nhấn (không phải công tắc giữ trạng thái)
+  thiet_bi_an_ninh.updateAndReportParam("Gia Lap Dot Nhap", false);
+}
+
 // FIX 2 & 3: Oversampling Gas & Chế độ Armed/Disarmed
 int readGasAnalogOversampled() {
   long sum = 0;
@@ -480,10 +497,19 @@ void xuLyCacCamBienAnNinh() {
     cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", gasDetected ? "CO GAS" : "An toan");
   }
 
-  bool canBaoDong = intrusionDetected || forcedEntryAlarm || fireDetected || gasDetected;
+  static bool lastSimulatedAlarm = false;
+  if (simulatedIntrusion && (millis() - simulatedIntrusionStart > SIMULATED_ALARM_DURATION)) simulatedIntrusion = false;
+  if (simulatedIntrusion != lastSimulatedAlarm) {
+    lastSimulatedAlarm = simulatedIntrusion;
+    if (!simulatedIntrusion && !intrusionDetected && !forcedEntryAlarm) {
+      thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "Binh thuong");
+    }
+  }
+
+  bool canBaoDong = intrusionDetected || forcedEntryAlarm || fireDetected || gasDetected || simulatedIntrusion;
   static unsigned long lastBlinkTime = 0;
   if (canBaoDong) {
-    if (millis() - lastBlinkTime > ((forcedEntryAlarm || fireDetected || gasDetected) ? 150UL : 400UL)) {
+    if (millis() - lastBlinkTime > ((forcedEntryAlarm || fireDetected || gasDetected || simulatedIntrusion) ? 150UL : 400UL)) {
       lastBlinkTime = millis();
       buzzerBlinkState = !buzzerBlinkState;
       digitalWrite(BUZZER_PIN, buzzerBlinkState);
@@ -574,13 +600,16 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       isArmed = s; // Cập nhật trạng thái Armed/Disarmed
       Serial.printf("[LOG] An Ninh -> %s\n", isArmed ? "DA BAT (ARMED)" : "DA TAT (DISARMED)");
     }
+    else if (strcmp(param_name, "Gia Lap Dot Nhap") == 0) {
+      if (s) kichHoatGiaLapDotNhap(); // Nhấn nút trên App -> chuông kêu + camera chụp
+    }
   }
   else if (strcmp(param_name, "Power") == 0) {
-    if (strcmp(device_name, "Den Phong Khach") == 0) { 
-      state_den_khach = s; current_pwm_dk = s ? MAX_PWM_DK : 0;
-      sendDeviceCmd("DK", s); prefs.putBool("den_khach", s); 
+    if (strcmp(device_name, "Den Phong Ngu") == 0) { 
+      state_den_ngu = s; current_pwm_dn = s ? MAX_PWM_DN : 0;
+      sendDeviceCmd("DN", s); prefs.putBool("den_ngu", s); 
     }
-    else if (strcmp(device_name, "Den Phong Ngu") == 0) { state_den_ngu = s; sendDeviceCmd("DN", s); prefs.putBool("den_ngu", s); }
+    else if (strcmp(device_name, "Den Phong Khach") == 0) { state_den_khach = s; sendDeviceCmd("DK", s); prefs.putBool("den_khach", s); }
     else if (strcmp(device_name, "Den Bep") == 0) { state_den_bep = s; sendDeviceCmd("DB", s); prefs.putBool("den_bep", s); }
     else if (strcmp(device_name, "Den WC") == 0) { state_den_wc = s; sendDeviceCmd("DW", s); prefs.putBool("den_wc", s); }
     else if (strcmp(device_name, "Quat Phong Khach") == 0) { state_quat_khach = s; sendDeviceCmd("QK", s); prefs.putBool("quat_khach", s); }
@@ -733,6 +762,8 @@ void setup() {
   cardParam.addUIType(ESP_RMAKER_UI_TOGGLE); thiet_bi_an_ninh.addParam(cardParam);
   Param passParam("Doi Mat Khau", ESP_RMAKER_PARAM_POWER, value(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
   passParam.addUIType(ESP_RMAKER_UI_TOGGLE); thiet_bi_an_ninh.addParam(passParam);
+  Param simIntrusionParam("Gia Lap Dot Nhap", ESP_RMAKER_PARAM_POWER, value(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
+  simIntrusionParam.addUIType(ESP_RMAKER_UI_TOGGLE); thiet_bi_an_ninh.addParam(simIntrusionParam);
   thiet_bi_an_ninh.addCb(write_callback);
   my_node.addDevice(thiet_bi_an_ninh);
 
