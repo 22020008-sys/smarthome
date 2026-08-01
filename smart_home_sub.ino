@@ -172,7 +172,7 @@ void xuLyHeThongTuoiNuoc() {
   
     int pct = map(rawAnalog, 4095, 1200, 0, 100);
     pct = constrain(pct, 0, 100);
-    phanTramDat = pct;   // FIX: cập nhật biến global để gửi đúng giá trị sang Main
+    phanTramDat = pct;   
 
     Serial.printf("[GARDEN] Analog tho: %d => Do am quy doi: %d%%\n", rawAnalog, pct);
 
