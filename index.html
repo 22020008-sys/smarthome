@@ -225,6 +225,27 @@
         border-color: var(--warn);
         animation: alarmGlow 1.1s ease-in-out infinite;
     }
+
+    /* ============ CATEGORY DIVIDERS (nhóm chức năng: An Ninh / Điều Khiển / Khác) ============ */
+    .category-divider {
+        display: flex; align-items: center; gap: 14px; margin: 30px 0 14px;
+    }
+    .category-divider:first-child { margin-top: 4px; }
+    .category-divider .cd-title {
+        display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+        font-family: var(--display); font-weight: 700; font-size: 13px; letter-spacing: 1.1px;
+        text-transform: uppercase; color: var(--cd-color, var(--accent));
+    }
+    .category-divider .cd-icon {
+        width: 26px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+        background: color-mix(in srgb, var(--cd-color, var(--accent)) 16%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cd-color, var(--accent)) 42%, transparent);
+        font-size: 14px;
+    }
+    .category-divider .cd-line {
+        flex: 1; height: 1px;
+        background: linear-gradient(90deg, color-mix(in srgb, var(--cd-color, var(--accent)) 55%, transparent), transparent);
+    }
     @keyframes alarmGlow {
         0%, 100% { box-shadow: 0 16px 34px -26px rgba(30,40,70,0.14), 0 0 0 0 rgba(225,29,85,0.35); }
         50% { box-shadow: 0 16px 34px -26px rgba(30,40,70,0.14), 0 0 26px 3px rgba(225,29,85,0.4); }
@@ -308,12 +329,12 @@
     button:active { transform: translateY(1px); }
     button:disabled { background: var(--border-bright); box-shadow: none; cursor: not-allowed; color: var(--text-faint); }
 
-    #btn-gia-lap-dot-nhap {
+    .btn-action {
         background: linear-gradient(135deg, #ff4757, #ff2e7e); color: #fff;
         box-shadow: 0 10px 24px -12px rgba(255,71,87,0.55);
         animation: dangerPulse 2.4s ease-in-out infinite;
     }
-    #btn-gia-lap-dot-nhap:disabled { animation: none; }
+    .btn-action:disabled { animation: none; }
     @keyframes dangerPulse {
         0%, 100% { box-shadow: 0 10px 24px -12px rgba(255,71,87,0.45); }
         50% { box-shadow: 0 12px 32px -8px rgba(255,71,87,0.8); }
@@ -606,8 +627,15 @@
             <div class="toolbar-status">
                 <div><span class="status-dot" id="live-dot"></span><span id="live-text">Chưa bật tự động đồng bộ</span></div>
                 <span class="last-sync" id="last-sync-text"></span>
+                <span class="mod-badge" id="device-on-count" style="display:none;">--/-- đang bật</span>
             </div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; align-items:center;">
+                <div class="siren-btn-wrap" style="flex-direction:row; gap:8px;">
+                    <button id="btn-siren-toggle" type="button" onclick="toggleSirenMute()" title="Bấm để bật/tắt tiếng còi web" aria-label="Còi báo động Web" style="width:38px; height:38px;">
+                        <span class="siren-icon" id="siren-status-icon"></span>
+                    </button>
+                    <span class="siren-status-label" id="siren-status-label" style="text-align:left;">Còi Web: Sẵn Sàng</span>
+                </div>
                 <button class="btn-ghost" onclick="toggleAutoSync()" id="autosync-btn">
                     <span class="btn-ico" id="autosync-ico"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
                     <span id="autosync-label">Tạm dừng</span>
@@ -619,53 +647,10 @@
             </div>
         </div>
 
-        <!-- Thông số môi trường -->
-        <div class="section sec-env">
-            <div class="panel-head">
-                <h2><span class="sec-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V4a2 2 0 1 0-4 0v10.5a4 4 0 1 0 4 0Z"/></svg></span>Thông Số Môi Trường</h2>
-                <span class="mod-tag">DEVICE · Moi Truong</span>
-            </div>
-            <div class="grid">
-                <div class="card" style="--metric:var(--c-temp);">
-                    <div class="sensor-top"><span class="sensor-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V4a2 2 0 1 0-4 0v10.5a4 4 0 1 0 4 0Z"/></svg></span><span class="label">Nhiệt Độ</span></div>
-                    <div class="value skeleton" id="p-Nhiet_Do">--</div>
-                </div>
-                <div class="card" style="--metric:var(--c-hum);">
-                    <div class="sensor-top"><span class="sensor-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s7 7.6 7 12a7 7 0 1 1-14 0c0-4.4 7-12 7-12Z"/></svg></span><span class="label">Độ Ẩm</span></div>
-                    <div class="value skeleton" id="p-Do_Am">--</div>
-                </div>
-                <div class="card" style="--metric:var(--c-light-in);">
-                    <div class="sensor-top"><span class="sensor-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/></svg></span><span class="label">Ánh Sáng (Trong)</span></div>
-                    <div class="value skeleton" id="p-Anh_Sang_Trong">--</div>
-                </div>
-                <div class="card" style="--metric:var(--c-light-out);">
-                    <div class="sensor-top"><span class="sensor-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18M6 18v-4l3-3 3 3 3-6 3 6v4"/></svg></span><span class="label">Ánh Sáng (Ngoài)</span></div>
-                    <div class="value skeleton" id="p-Anh_Sang_Ngoai">--</div>
-                </div>
-                <div class="card" style="--metric:var(--c-soil);">
-                    <div class="sensor-top"><span class="sensor-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-7M12 14c-4 0-6-3-6-7 4 0 6 2 6 5 0-3 2-5 6-5 0 4-2 7-6 7Z"/></svg></span><span class="label">Độ Ẩm Đất</span></div>
-                    <div class="value skeleton" id="p-Do_Am_Dat">--</div>
-                </div>
-                <div class="card" style="--metric:var(--c-gas);">
-                    <div class="sensor-top"><span class="sensor-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h9a2.5 2.5 0 1 0-2.4-3.2M4 12h13a2.5 2.5 0 1 1-2.4 3.2M4 16h7"/></svg></span><span class="label">Nồng Độ Gas</span></div>
-                    <div class="value skeleton" id="p-Nong_do_Gas">--</div>
-                </div>
-                <div class="card alert"><div class="label">Báo Cháy</div><div class="value skeleton" id="p-Bao_Chay">--</div></div>
-                <div class="card alert"><div class="label">Rò Rỉ Gas</div><div class="value skeleton" id="p-Ro_ri_Gas">--</div></div>
-            </div>
-
-            <div style="margin-top: 18px;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                    <label>Ngưỡng Sáng Tự Động (Lux)</label>
-                    <span class="range-value-badge" id="nguong-sang-val">--</span>
-                </div>
-                <div class="range-row">
-                    <input type="range" id="nguong-sang-slider" min="100" max="800" step="10" value="300"
-                        oninput="updateRangeFill(this)" onchange="setNguongSang(this.value)">
-                </div>
-                <div class="range-scale"><span>100 Lux</span><span>800 Lux</span></div>
-            </div>
-        </div>
+        <!-- Các khối thiết bị được dựng TỰ ĐỘNG từ cấu hình Node lấy về từ RainMaker Cloud.
+             Thêm/xoá/đổi thiết bị hay tham số bên app RainMaker sẽ tự phản ánh ở đây khi tải lại
+             trang & đăng nhập lại — không cần sửa code. -->
+        <div id="dynamic-devices"></div>
 
         <!-- Biểu đồ cảm biến -->
         <div class="section sec-chart">
@@ -712,63 +697,6 @@
             <div class="hint" id="chart-hint">Dữ liệu lấy trực tiếp từ RainMaker Cloud (Time Series) — luôn đầy đủ dù không mở web. Cuộn/chụm để zoom, kéo để di chuyển, nhấp đúp để reset.</div>
         </div>
 
-        <!-- Thiết bị -->
-        <div class="section sec-device">
-            <div class="panel-head">
-                <h2><span class="sec-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4.9 1 .9 1.7V16h5.2v-.4c0-.7.3-1.3.9-1.7A6 6 0 0 0 12 3Z"/></svg></span>Điều Khiển Thiết Bị</h2>
-                <span class="mod-badge" id="device-on-count">--/-- đang bật</span>
-            </div>
-            <div class="grid" id="switch-devices"></div>
-        </div>
-
-        <!-- An ninh -->
-        <div class="section sec-security" id="security-section">
-            <div class="panel-head">
-                <h2><span class="sec-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/></svg></span>An Ninh</h2>
-                <span class="mod-tag">DEVICE · An Ninh</span>
-            </div>
-            <div class="grid">
-                <div class="card" id="security-status-card"><div class="label">Trạng Thái An Ninh</div><div class="value skeleton" id="p-Trang_Thai_An_Ninh" style="font-size:15px;">--</div></div>
-            </div>
-            <div class="grid" style="margin-top:10px;">
-                <label class="device-card" style="--dev-color: var(--security);">
-                    <span class="name">Chế độ Quản Lý Thẻ RFID</span>
-                    <span class="icon-switch">
-                        <input type="checkbox" id="sw-An_Ninh-Quan_Ly_The" onchange="toggleParam('An Ninh','Quan Ly The', this.checked)">
-                        <span class="icon-toggle-visual">🪪</span>
-                    </span>
-                </label>
-                <label class="device-card" style="--dev-color: var(--security);">
-                    <span class="name">Chế độ Đổi Mật Khẩu</span>
-                    <span class="icon-switch">
-                        <input type="checkbox" id="sw-An_Ninh-Doi_Mat_Khau" onchange="toggleParam('An Ninh','Doi Mat Khau', this.checked)">
-                        <span class="icon-toggle-visual">🔐</span>
-                    </span>
-                </label>
-            </div>
-            <div class="grid" style="margin-top:10px;">
-                <button id="btn-gia-lap-dot-nhap" onclick="giaLapDotNhap()">🚨 Giả Lập Đột Nhập (Chuông + Camera)</button>
-            </div>
-            <div class="grid" style="margin-top:10px;">
-                <div class="siren-btn-wrap">
-                    <button id="btn-siren-toggle" type="button" onclick="toggleSirenMute()" title="Bấm để bật/tắt tiếng còi web" aria-label="Còi báo động Web">
-                        <span class="siren-icon" id="siren-status-icon"></span>
-                    </button>
-                    <span class="siren-status-label" id="siren-status-label">Còi Web: Sẵn Sàng</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Giàn phơi -->
-        <div class="section sec-weather">
-            <div class="panel-head">
-                <h2><span class="sec-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h11a3 3 0 1 0-3-3M3 16h15a3 3 0 1 1-3 3M3 12h8"/></svg></span>Giàn Phơi</h2>
-                <span class="mod-tag">DEVICE · Gian Phoi</span>
-            </div>
-            <div class="grid">
-                <div class="card"><div class="label">Thời Tiết</div><div class="value skeleton" id="p-Thoi_Tiet" style="font-size:15px;">--</div></div>
-            </div>
-        </div>
     </div>
 
     <!-- Log hệ thống -->
@@ -797,40 +725,40 @@
     let pausedForVisibility = false;
     const AUTO_SYNC_MS = 2500; // đồng bộ trạng thái thiết bị mỗi 2.5 giây (nhanh nhất có thể an toàn với polling REST, tránh bị API chặn 429)
 
-    const SWITCH_DEVICES = [
-        { id: "Den Phong Khach",  icon: "💡", name: "Đèn Phòng Khách",   color: "#ffc857" },
-        { id: "Den Phong Ngu",    icon: "💡", name: "Đèn Phòng Ngủ",     color: "#ffc857" },
-        { id: "Den Bep",          icon: "💡", name: "Đèn Bếp",           color: "#ffc857" },
-        { id: "Den WC",           icon: "💡", name: "Đèn WC",            color: "#ffc857" },
-        { id: "Quat Phong Khach", icon: "🌀", name: "Quạt Phòng Khách",  color: "#22b8f0" },
-        { id: "Quat Phong Ngu",   icon: "🌀", name: "Quạt Phòng Ngủ",    color: "#22b8f0" },
-        { id: "Quat Bep",         icon: "🌀", name: "Quạt Bếp",          color: "#22b8f0" },
-        { id: "May Bom",          icon: "🚰", name: "Máy Bơm",           color: "#16c9a8" },
-        { id: "Rem Cua",          icon: "🪟", name: "Rèm Cửa",           color: "#a76bfa" },
-    ];
-
-    // Danh sách tham số có thể vẽ biểu đồ (khớp với key trong nhóm "Moi Truong")
-    const PARAM_DEFS = [
-        { key: "Nhiet Do",       label: "Nhiệt Độ",         unit: "°C",  color: "--c-temp",      min: 0, max: 50 },
-        { key: "Do Am",          label: "Độ Ẩm",            unit: "%",   color: "--c-hum",       min: 0, max: 100 },
-        { key: "Anh Sang Trong", label: "Ánh Sáng Trong",   unit: "Lux", color: "--c-light-in",  min: 0, max: 1000 },
-        { key: "Anh Sang Ngoai", label: "Ánh Sáng Ngoài",   unit: "Lux", color: "--c-light-out", min: 0, max: 1000 },
-        { key: "Do Am Dat",      label: "Độ Ẩm Đất",        unit: "%",   color: "--c-soil",      min: 0, max: 100 },
-        { key: "Nong do Gas",    label: "Nồng Độ Gas",      unit: "",    color: "--c-gas",       min: 0, max: 100 },
-    ];
-    let selectedParams = new Set(["Nhiet Do", "Do Am"]);
+    // ==== TỰ ĐỘNG DÒ THIẾT BỊ/THAM SỐ TỪ CẤU HÌNH NODE TRÊN RAINMAKER CLOUD ====
+    // Không còn danh sách cứng SWITCH_DEVICES / PARAM_DEFS trong code nữa. Toàn bộ được dựng lại
+    // mỗi lần đăng nhập bằng cách gọi API lấy "node config" (xem fetchNodeConfig()) — nên hễ bên
+    // app RainMaker thêm/xoá/đổi tên thiết bị hay tham số, trang web này tự nhận ra ở lần đăng
+    // nhập kế tiếp mà không cần sửa code. Đổi lại, các khối An Ninh/Giàn Phơi... sẽ không còn giao
+    // diện tuỳ chỉnh riêng như trước mà dùng chung 1 kiểu thẻ chung cho tất cả thiết bị.
+    let nodeDevices = [];       // cấu hình thô lấy từ cloud: [{ name, type, params:[{name,type,data_type,properties,bounds,ui_type}] }]
+    let deviceWidgets = [];     // danh sách "widget" đã phân loại để vẽ UI, xem classifyParam()
+    let PARAM_DEFS = [];        // các tham số dạng số + có lưu lịch sử (time_series) -> vẽ được biểu đồ
+    let selectedParams = new Set(); // các key trong PARAM_DEFS đang được chọn để hiển thị biểu đồ
     let latestSensorValues = {}; // { paramKey: number } - giá trị mới nhất, cập nhật mỗi lần đồng bộ trạng thái thiết bị
+    let alarmingKeys = new Set(); // các key (dạng chuỗi trạng thái) hiện đang ở trạng thái bất thường -> kích còi web
+
+    // Bảng icon suy ra từ TỪ KHOÁ trong tên thiết bị/tham số (không dấu, khớp kiểu đặt tên đang dùng
+    // trên app RainMaker). Không khớp từ khoá nào -> dùng icon mặc định ⚙️.
+    const ICON_RULES = [
+        [/den|light/i, "💡"], [/quat|fan/i, "🌀"], [/bom|pump/i, "🚰"], [/rem|curtain/i, "🪟"],
+        [/nhiet|temp/i, "🌡️"], [/dat|soil/i, "🌱"], [/am|humid/i, "💧"], [/sang|lux|light/i, "☀️"],
+        [/gas/i, "🟠"], [/chay|fire|khoi|smoke/i, "🔥"], [/an ninh|security|khoa|lock|cua|door|the|rfid|mat khau/i, "🔒"],
+        [/thoi tiet|weather|mua|rain|gian phoi/i, "🌦️"], [/camera/i, "📷"], [/chuong|bell|coi|siren|dot nhap/i, "🔔"],
+    ];
+    function guessIcon(deviceName, paramName) {
+        const text = `${deviceName} ${paramName || ""}`;
+        for (const [re, icon] of ICON_RULES) if (re.test(text)) return icon;
+        return "⚙️";
+    }
+    // Bảng màu xoay vòng cho từng thiết bị (dùng lại các biến CSS màu sắc đã có sẵn trong :root)
+    const COLOR_CYCLE = ["--login", "--device", "--security", "--weather", "--chart", "--env", "--logmod", "--accent-2"];
+    function colorForIndex(i) { return cssVar(COLOR_CYCLE[i % COLOR_CYCLE.length]); }
 
     // ==== LẤY LỊCH SỬ TRỰC TIẾP TỪ RAINMAKER CLOUD (Time Series API) ====
     // Không lưu gì ở trình duyệt nữa: mọi dữ liệu đọc thẳng từ cloud nên đầy đủ trên mọi máy,
     // mọi lúc, kể cả khi trước đó không có ai mở trang web này (ESP32 tự đẩy dữ liệu lên mỗi 60s).
     const RM_TIMEZONE = "Asia/Ho_Chi_Minh";
-    const RM_DEVICE_NAME = "Moi Truong";
-    const PARAM_API_TYPE = {
-        "Nhiet Do": "float", "Do Am": "float",
-        "Anh Sang Trong": "int", "Anh Sang Ngoai": "int",
-        "Do Am Dat": "int", "Nong do Gas": "int",
-    };
     let chartPeriod = 'day';      // 'day' | 'week' | 'month' | 'year'
     let chartType = 'line';       // 'line' | 'bar' | 'pie'
     let chartAnchorDate = new Date(); // ngày mốc đang xem (mặc định hôm nay) — dùng để "lật" qua từng ngày/tuần/tháng/năm
@@ -839,7 +767,7 @@
     let chartRefreshTimer = null;
     let chartRenderToken = 0;     // guard chống race-condition khi người dùng bấm đổi khung/loại biểu đồ liên tục
 
-    function safeKey(key) { return key.replace(/\s+/g, '_'); }
+    function safeKey(key) { return key.replace(/[^a-zA-Z0-9À-ỹ]+/g, '_'); }
     function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
     function paramDef(key) { return PARAM_DEFS.find(p => p.key === key); }
     function roundVal(v) { return Math.round(v * 100) / 100; }
@@ -976,14 +904,14 @@
         if (todayBtn) todayBtn.style.display = isSameDay(chartAnchorDate, new Date()) ? 'none' : '';
     }
 
-    function buildTsUrl(key, extra) {
+    function buildTsUrl(def, extra) {
         const params = new URLSearchParams({
             node_id: myNodeId,
-            param_name: `${RM_DEVICE_NAME}.${key}`,
+            param_name: `${def.deviceName}.${def.paramName}`,
             differential: "false",
             reset_on_negative: "false",
             desc_order: "false",
-            type: PARAM_API_TYPE[key] || "float",
+            type: def.dataType || "float",
             timezone: RM_TIMEZONE,
             ...extra,
         });
@@ -1010,7 +938,7 @@
         let guard = 0;
         while (guard < 20 && cursor <= endSec) {
             guard++;
-            const url = buildTsUrl(key, {
+            const url = buildTsUrl(paramDef(key), {
                 aggregate: 'raw', start_time: cursor, end_time: endSec, num_records: 200,
             });
             const page = await fetchTsPage(url);
@@ -1025,7 +953,7 @@
     // Khung "7 Ngày"/"4 Tuần"/"1 Năm": cloud tự gộp trung bình theo giờ/ngày/tháng trong đúng khoảng [start,end)
     // được người dùng chọn (không phải luôn tính từ hiện tại) -> cho phép "lật" xem quá khứ chính xác.
     async function fetchTsAggRange(key, interval, startSec, endSec) {
-        const url = buildTsUrl(key, {
+        const url = buildTsUrl(paramDef(key), {
             aggregate: 'avg', aggregation_interval: interval, start_time: startSec, end_time: endSec,
         });
         const page = await fetchTsPage(url);
@@ -1115,29 +1043,286 @@
         }
     }
 
-    function buildSwitchCards() {
-        const container = document.getElementById('switch-devices');
-        container.innerHTML = '';
-        SWITCH_DEVICES.forEach(dev => {
-            const safeId = dev.id.replace(/\s+/g, '_');
-            const card = document.createElement('label');
-            card.className = 'device-card';
-            card.style.setProperty('--dev-color', dev.color);
-            card.innerHTML = `
-                <div class="device-text">
-                    <span class="name">${dev.name}</span>
-                    <span class="device-state" id="state-${safeId}">--</span>
-                </div>
-                <span class="icon-switch">
-                    <input type="checkbox" id="sw-${safeId}" onchange="onDeviceToggle('${dev.id}','${safeId}', this.checked)">
-                    <span class="icon-toggle-visual">${dev.icon}</span>
-                </span>`;
-            container.appendChild(card);
-        });
+    function escAttr(s) { return String(s).replace(/'/g, "\\'"); }
+
+    // Đoán đơn vị của 1 tham số số dựa trên từ khoá trong tên (không dấu) — chỉ ảnh hưởng hiển thị,
+    // không ảnh hưởng logic. Không đoán được thì để trống.
+    function guessUnit(paramName) {
+        const n = (paramName || '').toLowerCase();
+        if (/nhiet/.test(n)) return '°C';
+        if (/am/.test(n)) return '%';
+        if (/sang|lux/.test(n)) return 'Lux';
+        return '';
     }
 
-    function updateDeviceStateLabel(safeId, checked) {
-        const label = document.getElementById(`state-${safeId}`);
+    // Phân loại 1 tham số trong cấu hình Node thành loại widget phù hợp để vẽ UI:
+    // - toggle: boolean đọc+ghi được -> công tắc bật/tắt
+    // - action: boolean chỉ ghi (không đọc) -> nút bấm tức thời (vd lệnh giả lập)
+    // - slider: số đọc+ghi được và có khoảng min/max -> thanh trượt
+    // - sensor: số (đọc được) -> thẻ hiển thị giá trị, nếu có lưu lịch sử (time_series) thì vẽ được biểu đồ
+    // - status: chuỗi -> thẻ trạng thái dạng chữ
+    function classifyParam(param) {
+        const props = param.properties || [];
+        const canRead = props.includes('read');
+        const canWrite = props.includes('write');
+        const dt = (param.data_type || '').toLowerCase();
+        const isBool = dt === 'bool' || dt === 'boolean';
+        const isNumeric = ['int', 'float', 'double'].includes(dt);
+        const isString = dt === 'string';
+
+        if (isBool && canWrite && canRead) return 'toggle';
+        if (isBool && canWrite && !canRead) return 'action';
+        if (isNumeric && canWrite && canRead && param.bounds) return 'slider';
+        if (isNumeric) return 'sensor';
+        if (isString) return 'status';
+        return 'readonly';
+    }
+
+    // Gọi API lấy CẤU HÌNH đầy đủ của Node (không phải giá trị hiện tại): danh sách thiết bị,
+    // tham số, kiểu dữ liệu, khoảng giá trị... Đây là bước cho phép trang tự "học" widget mới mà
+    // không cần đụng vào code — hễ app RainMaker khai báo thêm thiết bị/tham số, lần đăng nhập kế
+    // tiếp trang sẽ tự thấy và tự vẽ thêm.
+    async function fetchNodeConfig() {
+        logMessage("Đang tải cấu hình thiết bị (Node Config) từ Cloud...");
+        try {
+            const response = await fetch(`${API_BASE}/user/nodes/config?node_id=${encodeURIComponent(myNodeId)}`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                logMessage(`Lỗi lấy cấu hình Node [${data.error_code || response.status}]: ${data.description || ''}`);
+                return;
+            }
+            nodeDevices = data.devices || [];
+            logMessage(`Đã tải cấu hình: ${nodeDevices.length} thiết bị (${nodeDevices.map(d => d.name).join(', ') || 'không có'})`);
+        } catch (error) {
+            logMessage("Lỗi khi lấy cấu hình Node: " + error);
+        }
+    }
+
+    // Dựng toàn bộ giao diện thiết bị (thay cho các khối cứng Môi Trường/Thiết Bị/An Ninh/Giàn Phơi
+    // trước đây) dựa trên nodeDevices vừa tải về. Gọi lại hàm này (vd sau khi đăng nhập lại) sẽ vẽ
+    // lại từ đầu, tự động phản ánh mọi thay đổi widget bên app RainMaker.
+    // Danh sách khối (section) theo LOẠI WIDGET — mỗi khối dùng chung 1 lưới cho mọi thiết bị
+    // có tham số thuộc loại đó, thay vì mỗi thiết bị 1 khối riêng như trước.
+    const WIDGET_SECTION_DEFS = [
+        { kind: 'sensor', title: 'Cảm Biến', tag: 'GROUP · SENSOR', icon: '📡', color: '--env' },
+        { kind: 'status', title: 'Trạng Thái', tag: 'GROUP · STATUS', icon: '📶', color: '--security' },
+        { kind: 'toggle', title: 'Công Tắc', tag: 'GROUP · SWITCH', icon: '🔌', color: '--device' },
+        { kind: 'action', title: 'Hành Động', tag: 'GROUP · ACTION', icon: '🎬', color: '--accent-2' },
+        { kind: 'slider', title: 'Điều Chỉnh', tag: 'GROUP · SLIDER', icon: '🎚️', color: '--chart' },
+    ];
+
+    // Nhóm CHỨC NĂNG của thiết bị — tách An Ninh và Điều Khiển Thiết Bị Trong Nhà ra riêng,
+    // các thiết bị còn lại (cảm biến môi trường, thời tiết, giàn phơi...) rơi vào nhóm "Khác".
+    // Khớp theo TÊN THIẾT BỊ (không phải tên tham số) nên dùng lại đúng các từ khoá an ninh/
+    // thiết bị điều khiển đã có sẵn trong ICON_RULES cho nhất quán.
+    const DEVICE_CATEGORY_DEFS = [
+        { key: 'security', title: 'An Ninh & Giám Sát', icon: '🔒', color: '--security',
+          match: /an ninh|security|khoa|lock|cua|door|the\b|rfid|mat khau|camera|chuong|bell|coi|siren|dot nhap/i },
+        { key: 'control', title: 'Điều Khiển Thiết Bị Trong Nhà', icon: '🏠', color: '--device',
+          match: /den|light|quat|fan|bom|pump|rem|curtain/i },
+        { key: 'other', title: 'Môi Trường & Khác', icon: '🌦️', color: '--env', match: null }, // nhóm hứng những thiết bị không khớp 2 nhóm trên
+    ];
+    function classifyDeviceCategory(deviceName) {
+        for (const c of DEVICE_CATEGORY_DEFS) {
+            if (c.match && c.match.test(deviceName)) return c.key;
+        }
+        return 'other';
+    }
+
+    // Vẽ 1 khối widget (vd "Công Tắc") chứa danh sách items đã lọc sẵn, trả về DOM element của section.
+    // Tách thành hàm riêng để dùng lại cho mỗi nhóm chức năng bên dưới thay vì lặp code.
+    function renderWidgetSection(secDef, items, deviceWidgets, chartableDefs, mergedNameByDevice) {
+        const section = document.createElement('div');
+        section.className = 'section';
+        section.style.setProperty('--sec-color', cssVar(secDef.color));
+
+        let html = `<div class="panel-head">
+            <h2><span class="sec-icon">${secDef.icon}</span>${secDef.title}</h2>
+            <span class="mod-tag">${secDef.tag}</span>
+        </div>`;
+
+        if (secDef.kind === 'sensor') {
+            html += `<div class="grid">`;
+            items.forEach(({ dev, p, devColor }) => {
+                const key = `${dev.name}::${p.name}`;
+                html += `<div class="card" style="--metric:${devColor};">
+                    <div class="sensor-top"><span class="sensor-icon">${guessIcon(dev.name, p.name)}</span><span class="label">${dev.name} · ${p.name}</span></div>
+                    <div class="value skeleton" id="p-${safeKey(key)}">--</div>
+                </div>`;
+                deviceWidgets.push({ type: 'sensor', device: dev.name, param: p.name, key });
+                if ((p.properties || []).includes('time_series')) {
+                    chartableDefs.push({
+                        key, label: p.name, unit: guessUnit(p.name), color: null,
+                        deviceName: dev.name, paramName: p.name, dataType: (p.data_type || 'float').toLowerCase(),
+                        min: p.bounds && typeof p.bounds.min === 'number' ? p.bounds.min : undefined,
+                        max: p.bounds && typeof p.bounds.max === 'number' ? p.bounds.max : undefined,
+                    });
+                }
+            });
+            html += `</div>`;
+        }
+
+        if (secDef.kind === 'status') {
+            html += `<div class="grid">`;
+            items.forEach(({ dev, p }) => {
+                const key = `${dev.name}::${p.name}`;
+                html += `<div class="card alert" id="card-${safeKey(key)}">
+                    <div class="label">${dev.name} · ${p.name}</div>
+                    <div class="value skeleton" id="p-${safeKey(key)}" style="font-size:15px;">--</div>
+                </div>`;
+                deviceWidgets.push({ type: 'status', device: dev.name, param: p.name, key });
+            });
+            html += `</div>`;
+        }
+
+        if (secDef.kind === 'toggle') {
+            html += `<div class="grid">`;
+            items.forEach(({ dev, p, devColor }) => {
+                const key = `${dev.name}::${p.name}`;
+                const nameMerge = mergedNameByDevice[dev.name];
+                let nameLineHtml = '';
+                if (nameMerge) {
+                    const nameKey = `${dev.name}::${nameMerge.p.name}`;
+                    nameLineHtml = `<span class="device-name-live" id="p-${safeKey(nameKey)}" style="display:block; font-size:10.5px; color:var(--text-faint); margin-top:2px;">--</span>`;
+                    deviceWidgets.push({ type: 'nameLive', device: dev.name, param: nameMerge.p.name, key: nameKey });
+                }
+                html += `<label class="device-card" style="--dev-color:${devColor};">
+                    <div class="device-text"><span class="name">${dev.name} · ${p.name}</span><span class="device-state" id="state-${safeKey(key)}">--</span>${nameLineHtml}</div>
+                    <span class="icon-switch">
+                        <input type="checkbox" id="sw-${safeKey(key)}" onchange="onDeviceToggle('${escAttr(dev.name)}','${escAttr(p.name)}','${safeKey(key)}', this.checked)">
+                        <span class="icon-toggle-visual">${guessIcon(dev.name, p.name)}</span>
+                    </span>
+                </label>`;
+                deviceWidgets.push({ type: 'toggle', device: dev.name, param: p.name, key });
+            });
+            html += `</div>`;
+        }
+
+        if (secDef.kind === 'action') {
+            html += `<div class="grid">`;
+            items.forEach(({ dev, p }) => {
+                const key = `${dev.name}::${p.name}`;
+                html += `<button class="btn-action" id="btn-${safeKey(key)}" onclick="triggerAction('${escAttr(dev.name)}','${escAttr(p.name)}','${safeKey(key)}')">${guessIcon(dev.name, p.name)} ${dev.name} · ${p.name}</button>`;
+                deviceWidgets.push({ type: 'action', device: dev.name, param: p.name, key });
+            });
+            html += `</div>`;
+        }
+
+        if (secDef.kind === 'slider') {
+            items.forEach(({ dev, p }) => {
+                const key = `${dev.name}::${p.name}`;
+                const min = (p.bounds && typeof p.bounds.min === 'number') ? p.bounds.min : 0;
+                const max = (p.bounds && typeof p.bounds.max === 'number') ? p.bounds.max : 100;
+                const step = (p.bounds && p.bounds.step) ? p.bounds.step : 1;
+                html += `<div style="margin-top:18px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                        <label>${dev.name} · ${p.name}</label>
+                        <span class="range-value-badge" id="val-${safeKey(key)}">--</span>
+                    </div>
+                    <div class="range-row">
+                        <input type="range" id="sl-${safeKey(key)}" min="${min}" max="${max}" step="${step}"
+                            oninput="updateRangeFill(this); document.getElementById('val-${safeKey(key)}').innerText=this.value;"
+                            onchange="setSliderParam('${escAttr(dev.name)}','${escAttr(p.name)}', this.value)">
+                    </div>
+                    <div class="range-scale"><span>${min}</span><span>${max}</span></div>
+                </div>`;
+                deviceWidgets.push({ type: 'slider', device: dev.name, param: p.name, key });
+            });
+        }
+
+        section.innerHTML = html;
+        return section;
+    }
+
+    function buildDynamicDashboard() {
+        const container = document.getElementById('dynamic-devices');
+        container.innerHTML = '';
+        deviceWidgets = [];
+        const chartableDefs = [];
+        const CHART_COLOR_CYCLE = ["--c-temp", "--c-hum", "--c-light-in", "--c-light-out", "--c-soil", "--c-gas", "--accent", "--accent-2"];
+
+        if (!nodeDevices.length) {
+            container.innerHTML = '<div class="hint">Không tìm thấy thiết bị nào trong cấu hình Node. Kiểm tra lại thiết bị đã online và đồng bộ config lên Cloud chưa.</div>';
+            PARAM_DEFS = [];
+            selectedParams = new Set();
+            return;
+        }
+
+        // Gộp tham số của TẤT CẢ thiết bị thành 1 danh sách phẳng, phân loại theo widget,
+        // đồng thời gắn sẵn nhóm chức năng (security/control/other) của thiết bị chứa nó.
+        const flatItems = { sensor: [], status: [], toggle: [], action: [], slider: [] };
+        const namesByDevice = {}; // dev.name -> {p, devColor} — tham số "Name" (chỉ lặp lại tên thiết bị) tách riêng để gộp vào đúng card Công Tắc thay vì tạo card Trạng Thái rời rạc
+        nodeDevices.forEach((dev, devIdx) => {
+            const devColor = colorForIndex(devIdx);
+            const category = classifyDeviceCategory(dev.name);
+            (dev.params || []).forEach(p => {
+                const kind = classifyParam(p);
+                if (kind === 'status' && p.name.toLowerCase() === 'name') {
+                    namesByDevice[dev.name] = { p, devColor, category };
+                    return;
+                }
+                if (flatItems[kind]) flatItems[kind].push({ dev, p, devColor, category });
+            });
+        });
+
+        // Chỉ gộp "Name" vào card Công Tắc khi thiết bị đó có ĐÚNG 1 công tắc (không mơ hồ card nào).
+        // Nếu thiết bị có 0 hoặc nhiều hơn 1 công tắc, vẫn hiển thị "Name" ở khối Trạng Thái như cũ.
+        const toggleCountByDevice = {};
+        flatItems.toggle.forEach(({ dev }) => { toggleCountByDevice[dev.name] = (toggleCountByDevice[dev.name] || 0) + 1; });
+        const mergedNameByDevice = {};
+        Object.keys(namesByDevice).forEach(devName => {
+            const info = namesByDevice[devName];
+            if (toggleCountByDevice[devName] === 1) {
+                mergedNameByDevice[devName] = info;
+            } else {
+                const dev = nodeDevices.find(d => d.name === devName);
+                flatItems.status.push({ dev, p: info.p, devColor: info.devColor, category: info.category });
+            }
+        });
+
+        // Rải các item đã phân loại widget vào đúng nhóm chức năng thiết bị của chúng.
+        const categoryGroups = {};
+        DEVICE_CATEGORY_DEFS.forEach(c => { categoryGroups[c.key] = { sensor: [], status: [], toggle: [], action: [], slider: [] }; });
+        Object.keys(flatItems).forEach(kind => {
+            flatItems[kind].forEach(item => { categoryGroups[item.category][kind].push(item); });
+        });
+
+        DEVICE_CATEGORY_DEFS.forEach(catDef => {
+            const catGroups = categoryGroups[catDef.key];
+            const hasAny = Object.values(catGroups).some(g => g.length);
+            if (!hasAny) return; // nhóm chức năng này không có thiết bị nào -> bỏ qua cả tiêu đề lẫn nội dung
+
+            const divider = document.createElement('div');
+            divider.className = 'category-divider';
+            divider.style.setProperty('--cd-color', cssVar(catDef.color));
+            divider.innerHTML = `<span class="cd-title"><span class="cd-icon">${catDef.icon}</span>${catDef.title}</span><span class="cd-line"></span>`;
+            container.appendChild(divider);
+
+            WIDGET_SECTION_DEFS.forEach(secDef => {
+                const items = catGroups[secDef.kind];
+                if (!items.length) return; // không có tham số nào thuộc loại này trong nhóm -> bỏ qua khối
+                const section = renderWidgetSection(secDef, items, deviceWidgets, chartableDefs, mergedNameByDevice);
+                section.id = `dev-section-${catDef.key}-${secDef.kind}`;
+                container.appendChild(section);
+            });
+        });
+
+        chartableDefs.forEach((d, i) => { d.color = CHART_COLOR_CYCLE[i % CHART_COLOR_CYCLE.length]; });
+        PARAM_DEFS = chartableDefs;
+
+        // Giữ lại lựa chọn biểu đồ cũ nếu tham số đó vẫn còn tồn tại sau khi nạp lại cấu hình,
+        // không thì mặc định chọn 2 tham số số đầu tiên tìm thấy.
+        const stillValid = [...selectedParams].filter(k => PARAM_DEFS.some(d => d.key === k));
+        selectedParams = new Set(stillValid.length ? stillValid : PARAM_DEFS.slice(0, 2).map(d => d.key));
+
+        document.querySelectorAll('#dynamic-devices input[type="range"]').forEach(updateRangeFill);
+    }
+
+    function updateDeviceStateLabel(safeIdKey, checked) {
+        const label = document.getElementById(`state-${safeIdKey}`);
         if (!label) return;
         label.innerText = checked ? 'Đang bật' : 'Đang tắt';
         label.classList.toggle('on', checked);
@@ -1145,26 +1330,46 @@
 
     // Cập nhật ngay trên giao diện trước khi chờ phản hồi cloud (optimistic update) để bấm phát ăn ngay,
     // nếu lệnh thất bại thì tự động khôi phục lại trạng thái cũ.
-    async function onDeviceToggle(deviceName, safeId, checked) {
-        updateDeviceStateLabel(safeId, checked);
-        const ok = await toggleParam(deviceName, 'Power', checked);
+    async function onDeviceToggle(deviceName, paramName, safeIdKey, checked) {
+        updateDeviceStateLabel(safeIdKey, checked);
+        const ok = await toggleParam(deviceName, paramName, checked);
         if (!ok) {
-            const el = document.getElementById(`sw-${safeId}`);
+            const el = document.getElementById(`sw-${safeIdKey}`);
             if (el) el.checked = !checked;
-            updateDeviceStateLabel(safeId, !checked);
+            updateDeviceStateLabel(safeIdKey, !checked);
         }
+        // Bỏ focus khỏi checkbox ngay sau khi gửi lệnh: nếu không, checkbox vẫn là document.activeElement
+        // và refreshAll() sẽ luôn bỏ qua việc đồng bộ lại giá trị thật từ cloud (xem điều kiện trong refreshAll),
+        // khiến các nút bấm tức thời kiểu "Giả Lập..." (tự trả về false ở firmware) bị hiển thị kẹt ở trạng thái ON.
+        document.getElementById(`sw-${safeIdKey}`)?.blur();
         updateDeviceOnCount();
     }
 
     function updateDeviceOnCount() {
         const el = document.getElementById('device-on-count');
         if (!el) return;
+        const toggles = deviceWidgets.filter(w => w.type === 'toggle');
+        if (!toggles.length) { el.style.display = 'none'; return; }
         let on = 0;
-        SWITCH_DEVICES.forEach(dev => {
-            const cb = document.getElementById(`sw-${dev.id.replace(/\s+/g, '_')}`);
-            if (cb && cb.checked) on++;
-        });
-        el.innerText = `${on}/${SWITCH_DEVICES.length} đang bật`;
+        toggles.forEach(w => { const cb = document.getElementById(`sw-${safeKey(w.key)}`); if (cb && cb.checked) on++; });
+        el.style.display = '';
+        el.innerText = `${on}/${toggles.length} đang bật`;
+    }
+
+    // Nút bấm tức thời (vd "Giả Lập Đột Nhập"): gửi lệnh = true, firmware tự xử lý rồi tự trả tham
+    // số về false, nên ở đây chỉ cần khoá nút ít giây để tránh bấm liên tục gây spam lệnh lên Cloud.
+    async function triggerAction(deviceName, paramName, safeIdKey) {
+        const btn = document.getElementById(`btn-${safeIdKey}`);
+        if (btn) btn.disabled = true;
+        await toggleParam(deviceName, paramName, true);
+        setTimeout(() => { if (btn) btn.disabled = false; }, 3000);
+    }
+
+    let sliderDebounceTimers = {};
+    function setSliderParam(deviceName, paramName, val) {
+        const key = safeKey(`${deviceName}::${paramName}`);
+        clearTimeout(sliderDebounceTimers[key]);
+        sliderDebounceTimers[key] = setTimeout(() => toggleParam(deviceName, paramName, Number(val)), 400);
     }
 
     // 1. ĐĂNG NHẬP
@@ -1197,10 +1402,10 @@
                 setConnStatus('connected', 'Đã kết nối');
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('dashboard-section').style.display = 'block';
-                buildSwitchCards();
-                buildParamChips();
-                updateRangeFill(document.getElementById('nguong-sang-slider'));
                 await fetchNodeId();
+                await fetchNodeConfig();
+                buildDynamicDashboard();
+                buildParamChips();
                 await refreshAll();
                 startAutoSync();
 
@@ -1279,6 +1484,14 @@
     });
 
     // 4. LẤY TRẠNG THÁI TẤT CẢ THAM SỐ HIỆN TẠI
+    // Chuẩn hoá 1 giá trị chuỗi trạng thái để so sánh (bỏ khoảng trắng thừa, viết thường)
+    function normalizeStatus(s) { return String(s).trim().toLowerCase(); }
+    // Các giá trị được xem là "bình thường/không cảnh báo" cho các tham số dạng trạng thái
+    const NORMAL_STATUS_VALUES = new Set(['binh thuong', 'binh thường', 'an toan', 'an toàn', 'ok', 'san sang', 'sẵn sàng', 'ready', 'normal', 'off', 'tat', 'khong', 'none', '']);
+    // Chỉ áp dụng heuristic tô đỏ/kích còi cho những tham số có TÊN gợi ý là cảnh báo/lỗi (vd "Bao Chay",
+    // "Trang Thai An Ninh", "Canh Bao ..."), để tránh tô nhầm những chuỗi hiển thị thông thường như "Thoi Tiet".
+    function isAlarmStatusKey(key) { return /bao|canh|loi|error|alarm|chay|fire|gas|an ninh|security|dot nhap|sat nhap|intrusion/i.test(key); }
+
     async function refreshAll() {
         if (!accessToken || !myNodeId || isRefreshing) return;
         isRefreshing = true;
@@ -1295,73 +1508,57 @@
             }
             setConnStatus('connected', 'Đã kết nối');
 
-            SWITCH_DEVICES.forEach(dev => {
-                const safeId = dev.id.replace(/\s+/g, '_');
-                const el = document.getElementById(`sw-${safeId}`);
-                if (el && data[dev.id] && typeof data[dev.id]["Power"] !== 'undefined' && document.activeElement !== el) {
-                    el.checked = !!data[dev.id]["Power"];
+            // Duyệt qua TOÀN BỘ widget đã được dò thấy trong cấu hình Node (xem buildDynamicDashboard)
+            // và cập nhật đúng phần tử DOM tương ứng — không còn phụ thuộc tên thiết bị/tham số cố định.
+            deviceWidgets.forEach(w => {
+                const devData = data[w.device];
+                if (!devData || typeof devData[w.param] === 'undefined') return;
+                const val = devData[w.param];
+                const domKey = safeKey(w.key);
+
+                if (w.type === 'toggle') {
+                    const el = document.getElementById(`sw-${domKey}`);
+                    if (el && document.activeElement !== el) el.checked = !!val;
+                    if (el) updateDeviceStateLabel(domKey, el.checked);
+                } else if (w.type === 'slider') {
+                    const el = document.getElementById(`sl-${domKey}`);
+                    if (el && document.activeElement !== el) {
+                        el.value = val;
+                        const badge = document.getElementById(`val-${domKey}`);
+                        if (badge) badge.innerText = val;
+                        updateRangeFill(el);
+                    }
+                } else if (w.type === 'sensor') {
+                    if (typeof val === 'number') {
+                        const def = paramDef(w.key);
+                        animateNumericText(`p-${domKey}`, val, def ? def.unit : guessUnit(w.param), Number.isInteger(val) ? 0 : 1);
+                        latestSensorValues[w.key] = val;
+                    } else {
+                        setText(`p-${domKey}`, val, '');
+                    }
+                } else if (w.type === 'status') {
+                    setText(`p-${domKey}`, val, '');
+                    const dangCanhBao = isAlarmStatusKey(w.key) && !NORMAL_STATUS_VALUES.has(normalizeStatus(val));
+                    document.getElementById(`card-${domKey}`)?.classList.toggle('is-alarm', dangCanhBao);
+                    if (dangCanhBao) alarmingKeys.add(w.key); else alarmingKeys.delete(w.key);
+                } else if (w.type === 'nameLive') {
+                    // Chỉ hiển thị tên thiết bị realtime — KHÔNG tham gia logic tính còi báo động,
+                    // tránh false-positive khi tên thiết bị chứa từ khoá như "Dot Nhap"/"Gas" (xem isAlarmStatusKey).
+                    setText(`p-${domKey}`, val, '');
                 }
-                if (el) updateDeviceStateLabel(safeId, el.checked);
             });
             updateDeviceOnCount();
+            capNhatCoiTheoTongTrangThai();
 
-            const mt = data["Moi Truong"];
-            if (mt) {
-                animateNumericText('p-Nhiet_Do', mt["Nhiet Do"], "°C", 1);
-                animateNumericText('p-Do_Am', mt["Do Am"], "%", 1);
-                animateNumericText('p-Anh_Sang_Trong', mt["Anh Sang Trong"], "Lux", 0);
-                animateNumericText('p-Anh_Sang_Ngoai', mt["Anh Sang Ngoai"], "Lux", 0);
-                animateNumericText('p-Do_Am_Dat', mt["Do Am Dat"], "%", 0);
-                animateNumericText('p-Nong_do_Gas', mt["Nong do Gas"], "", 0);
-                setText('p-Bao_Chay', mt["Bao Chay"], "");
-                setText('p-Ro_ri_Gas', mt["Ro ri Gas"], "");
-
-                // Cập nhật cảnh báo Báo Cháy / Rò Rỉ Gas: chớp thẻ đỏ + kích còi web
-                const coBaoChay = isTrangThaiCanhBao(mt["Bao Chay"], "CO LUA");
-                const coRoRiGas = isTrangThaiCanhBao(mt["Ro ri Gas"], "CO GAS");
-                document.getElementById('p-Bao_Chay')?.closest('.card')?.classList.toggle('is-alarm', coBaoChay);
-                document.getElementById('p-Ro_ri_Gas')?.closest('.card')?.classList.toggle('is-alarm', coRoRiGas);
-                alarmState.chay = coBaoChay;
-                alarmState.gas = coRoRiGas;
-                capNhatCoiTheoTongTrangThai();
-                const slider = document.getElementById('nguong-sang-slider');
-                if (typeof mt["Nguong Sang"] !== 'undefined' && document.activeElement !== slider) {
-                    slider.value = mt["Nguong Sang"];
-                    document.getElementById('nguong-sang-val').innerText = mt["Nguong Sang"];
-                    updateRangeFill(slider);
+            // Giá trị hiện tại hiển thị trên thẻ biểu đồ (lịch sử vẫn lấy trực tiếp từ Cloud khi vẽ)
+            Object.keys(chartInstances).forEach(k => {
+                updateChartCardValue(k);
+                if (chartType === 'pie') {
+                    const card = document.getElementById(`chart-card-${safeKey(k)}`);
+                    const wrap = card && card.querySelector('.cc-canvas-wrap');
+                    if (wrap) renderGaugeInto(wrap, k, paramDef(k), []);
                 }
-
-                // Giá trị hiện tại hiển thị trên card biểu đồ (lịch sử vẫn lấy trực tiếp từ Cloud khi vẽ)
-                PARAM_DEFS.forEach(p => { if (typeof mt[p.key] === 'number') latestSensorValues[p.key] = mt[p.key]; });
-                Object.keys(chartInstances).forEach(k => {
-                    updateChartCardValue(k);
-                    if (chartType === 'pie') {
-                        const card = document.getElementById(`chart-card-${safeKey(k)}`);
-                        const wrap = card && card.querySelector('.cc-canvas-wrap');
-                        if (wrap) renderGaugeInto(wrap, k, paramDef(k), []);
-                    }
-                });
-            }
-
-            const an = data["An Ninh"];
-            if (an) {
-                setText('p-Trang_Thai_An_Ninh', an["Trang Thai An Ninh"], "");
-                const sw1 = document.getElementById('sw-An_Ninh-Quan_Ly_The');
-                const sw2 = document.getElementById('sw-An_Ninh-Doi_Mat_Khau');
-                if (typeof an["Quan Ly The"] !== 'undefined' && document.activeElement !== sw1) sw1.checked = !!an["Quan Ly The"];
-                if (typeof an["Doi Mat Khau"] !== 'undefined' && document.activeElement !== sw2) sw2.checked = !!an["Doi Mat Khau"];
-
-                // Khung An Ninh nhấp nháy viền đỏ khi trạng thái không còn "Binh thuong"
-                const trangThai = an["Trang Thai An Ninh"] || "";
-                const dangCanhBao = typeof trangThai === 'string' && trangThai.trim() !== "" && trangThai.trim().toLowerCase() !== "binh thuong";
-                document.getElementById('security-section').classList.toggle('is-alarm', dangCanhBao);
-                document.getElementById('security-status-card')?.classList.toggle('is-alarm', dangCanhBao);
-                alarmState.anNinh = dangCanhBao;
-                capNhatCoiTheoTongTrangThai();
-            }
-
-            const gp = data["Gian Phoi"];
-            if (gp) setText('p-Thoi_Tiet', gp["Thoi Tiet"], "");
+            });
 
             const now = new Date();
             const syncEl = document.getElementById('last-sync-text');
@@ -1402,20 +1599,11 @@
         }
     }
 
-    // Nút nhấn giả lập đột nhập: gửi Gia Lap Dot Nhap = true, firmware sẽ tự kích chuông + camera
-    // rồi tự trả tham số về false, nên ở đây không cần đọc lại trạng thái, chỉ khoá nút ít giây
-    // để tránh bấm liên tục gây spam lệnh lên Cloud.
     // ==== CÒI BÁO ĐỘNG TRÊN WEB (Web Audio API — tự tạo âm thanh, không cần file mp3) ====
-    // Trạng thái cảnh báo hiện tại của 3 nguồn: An Ninh / Báo Cháy / Rò Rỉ Gas -> còi web kêu khi bất kỳ nguồn nào đang cảnh báo
-    let alarmState = { anNinh: false, chay: false, gas: false };
-    function isCanhBaoTruthy(v) { return v === true || v === 1 || v === '1'; }
-    // Bao Chay / Ro ri Gas trả về chuỗi trạng thái tiếng Việt (vd "CO LUA", "CO GAS"), không phải boolean
-    function isTrangThaiCanhBao(v, tuKhoaCanhBao) {
-        return typeof v === 'string' && v.trim().toUpperCase() === tuKhoaCanhBao;
-    }
+    // Còi web kêu khi có BẤT KỲ tham số dạng trạng thái nào (thuộc bất kỳ thiết bị nào) đang ở trạng
+    // thái bất thường — danh sách alarmingKeys được cập nhật động mỗi lần refreshAll() (xem isAlarmStatusKey).
     function capNhatCoiTheoTongTrangThai() {
-        const dangCoCanhBao = alarmState.anNinh || alarmState.chay || alarmState.gas;
-        if (dangCoCanhBao) startSiren(); else stopSiren();
+        if (alarmingKeys.size > 0) startSiren(); else stopSiren();
     }
 
     let audioCtx = null;
@@ -1510,22 +1698,6 @@
     // Khởi tạo trạng thái nút ngay khi trang tải xong
     document.addEventListener('DOMContentLoaded', updateSirenButton);
     updateSirenButton();
-
-    async function giaLapDotNhap() {
-        const btn = document.getElementById('btn-gia-lap-dot-nhap');
-        if (btn) { btn.disabled = true; btn.textContent = '🚨 Đang kích hoạt...'; }
-        await toggleParam('An Ninh', 'Gia Lap Dot Nhap', true);
-        setTimeout(() => {
-            if (btn) { btn.disabled = false; btn.textContent = '🚨 Giả Lập Đột Nhập (Chuông + Camera)'; }
-        }, 3000);
-    }
-
-    let nguongSangDebounce = null;
-    function setNguongSang(val) {
-        document.getElementById('nguong-sang-val').innerText = val;
-        clearTimeout(nguongSangDebounce);
-        nguongSangDebounce = setTimeout(() => toggleParam('Moi Truong', 'Nguong Sang', parseInt(val, 10)), 400);
-    }
 
     // ==== 6. BIỂU ĐỒ CẢM BIẾN — mỗi thông số 1 biểu đồ riêng, dữ liệu lấy trực tiếp từ RainMaker Cloud, hỗ trợ zoom/pan ====
 

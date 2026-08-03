@@ -1,12 +1,13 @@
 /*
  * ============================================================
- * SMART HOME - MAIN (OPTIMIZED VERSION)
+ * SMART HOME - MAIN (OPTIMIZED VERSION + PUSH NOTIFICATION)
  * ============================================================
  */
 
 #include "RMaker.h"
 #include "WiFi.h"
 #include "WiFiProv.h"
+#include <esp_rmaker_core.h>
 #include <Preferences.h>
 #include <DHT.h>
 #include <Wire.h>
@@ -159,6 +160,12 @@ unsigned long forcedEntryAlarmStart = 0;
 bool simulatedIntrusion            = false; // Giả lập đột nhập từ nút nhấn trên App
 unsigned long simulatedIntrusionStart = 0;
 #define SIMULATED_ALARM_DURATION  15000UL
+bool simulatedFire                 = false; // Giả lập lửa từ nút nhấn trên App
+unsigned long simulatedFireStart   = 0;
+#define SIMULATED_FIRE_DURATION   15000UL
+bool simulatedGas                  = false; // Giả lập gas từ nút nhấn trên App
+unsigned long simulatedGasStart    = 0;
+#define SIMULATED_GAS_DURATION    15000UL
 bool buzzerBlinkState       = false; 
 bool fireDetected           = false;
 bool gasDetected            = false;
@@ -175,6 +182,11 @@ static Switch quat_ngu  ("Quat Phong Ngu",  NULL, false);
 static Switch quat_bep  ("Quat Bep",        NULL, false);
 static Switch may_bom   ("May Bom",         NULL, false); 
 static Switch rem_cua   ("Rem Cua",         NULL, false);
+// Các switch "giả lập" được tách thành Device độc lập (esp.device.switch)
+// để Google Home / Alexa nhận diện và hiển thị được (Param lồng trong Device Sensor sẽ không lộ ra ngoài)
+static Switch gia_lap_dot_nhap("Gia Lap Dot Nhap", NULL, false);
+static Switch gia_lap_gas     ("Gia Lap Gas",      NULL, false);
+static Switch gia_lap_lua     ("Gia Lap Lua",      NULL, false);
 static Device cam_bien_moi_truong("Moi Truong", "esp.device.sensor");
 static Device thiet_bi_an_ninh("An Ninh", "esp.device.sensor");     
 static Device thiet_bi_gian_phoi("Gian Phoi", "esp.device.sensor"); 
@@ -442,10 +454,29 @@ void kichHoatGiaLapDotNhap() {
   simulatedIntrusion = true;
   simulatedIntrusionStart = millis();
   thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "GIA LAP DOT NHAP");
+  esp_rmaker_raise_alert("Da kich hoat gia lap dot nhap!"); // <-- Push notification
   // Kích hoạt camera chụp ảnh ngay lập tức (không chặn luồng chính)
   xTaskCreate(taskChupAnhCamera, "CameraTaskSim", 4096, NULL, 1, NULL);
-  // Trả nút về trạng thái OFF ngay để App hiển thị như một nút nhấn (không phải công tắc giữ trạng thái)
-  thiet_bi_an_ninh.updateAndReportParam("Gia Lap Dot Nhap", false);
+  // Trả nút về trạng thái OFF ngay để App/Google Home hiển thị như một nút nhấn (không phải công tắc giữ trạng thái)
+  gia_lap_dot_nhap.updateAndReportParam("Power", false);
+}
+
+void kichHoatGiaLapLua() {
+  Serial.println(F("[LOG] Da kich hoat GIA LAP LUA tu App!"));
+  simulatedFire = true;
+  simulatedFireStart = millis();
+  cam_bien_moi_truong.updateAndReportParam("Bao Chay", "CO LUA (GIA LAP)");
+  esp_rmaker_raise_alert("CANH BAO CHAY! (Gia lap tu App)"); // <-- Push notification
+  gia_lap_lua.updateAndReportParam("Power", false); // Trả nút về OFF (kieu nut nhan)
+}
+
+void kichHoatGiaLapGas() {
+  Serial.println(F("[LOG] Da kich hoat GIA LAP GAS tu App!"));
+  simulatedGas = true;
+  simulatedGasStart = millis();
+  cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", "CO GAS (GIA LAP)");
+  esp_rmaker_raise_alert("CANH BAO: Ro ri Gas! (Gia lap tu App)"); // <-- Push notification
+  gia_lap_gas.updateAndReportParam("Power", false); // Trả nút về OFF (kieu nut nhan)
 }
 
 // FIX 2 & 3: Oversampling Gas & Chế độ Armed/Disarmed
@@ -472,6 +503,7 @@ void xuLyCacCamBienAnNinh() {
     lastIntrusionState = intrusionDetected;
     if (intrusionDetected) {
       thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "DOT NHAP");
+      esp_rmaker_raise_alert("Canh bao: Phat hien dot nhap!"); // <-- Push notification
       xTaskCreate(taskChupAnhCamera, "CameraTask", 4096, NULL, 1, NULL);
     } else if (!forcedEntryAlarm) thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "Binh thuong");
   }
@@ -480,7 +512,10 @@ void xuLyCacCamBienAnNinh() {
   if (forcedEntryAlarm && (millis() - forcedEntryAlarmStart > FORCED_ALARM_DURATION)) forcedEntryAlarm = false;
   if (forcedEntryAlarm != lastForcedAlarm) {
     lastForcedAlarm = forcedEntryAlarm;
-    if (forcedEntryAlarm) thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "NGHI VAN SAT NHAP");
+    if (forcedEntryAlarm) {
+      thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "NGHI VAN SAT NHAP");
+      esp_rmaker_raise_alert("Canh bao: Nghi van pha cua / sat nhap!"); // <-- Push notification
+    }
     else if (!intrusionDetected) thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "Binh thuong");
   }
 
@@ -488,6 +523,7 @@ void xuLyCacCamBienAnNinh() {
   if (currentFire != fireDetected) { 
     fireDetected = currentFire;
     cam_bien_moi_truong.updateAndReportParam("Bao Chay", fireDetected ? "CO LUA" : "An toan");
+    if (fireDetected) esp_rmaker_raise_alert("CANH BAO CHAY! Phat hien ngon lua!"); // <-- Push notification
   }
 
   bool currentGas = (digitalRead(GAS_SENSOR_PIN) == LOW); 
@@ -495,6 +531,7 @@ void xuLyCacCamBienAnNinh() {
   if (currentGas != gasDetected) { 
     gasDetected = currentGas;
     cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", gasDetected ? "CO GAS" : "An toan");
+    if (gasDetected) esp_rmaker_raise_alert("CANH BAO: Phat hien ro ri Gas!"); // <-- Push notification
   }
 
   static bool lastSimulatedAlarm = false;
@@ -506,10 +543,29 @@ void xuLyCacCamBienAnNinh() {
     }
   }
 
-  bool canBaoDong = intrusionDetected || forcedEntryAlarm || fireDetected || gasDetected || simulatedIntrusion;
+  static bool lastSimulatedFire = false;
+  if (simulatedFire && (millis() - simulatedFireStart > SIMULATED_FIRE_DURATION)) simulatedFire = false;
+  if (simulatedFire != lastSimulatedFire) {
+    lastSimulatedFire = simulatedFire;
+    if (!simulatedFire && !fireDetected) {
+      cam_bien_moi_truong.updateAndReportParam("Bao Chay", "An toan");
+    }
+  }
+
+  static bool lastSimulatedGas = false;
+  if (simulatedGas && (millis() - simulatedGasStart > SIMULATED_GAS_DURATION)) simulatedGas = false;
+  if (simulatedGas != lastSimulatedGas) {
+    lastSimulatedGas = simulatedGas;
+    if (!simulatedGas && !gasDetected) {
+      cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", "An toan");
+    }
+  }
+
+  bool canBaoDong = intrusionDetected || forcedEntryAlarm || fireDetected || gasDetected ||
+                    simulatedIntrusion || simulatedFire || simulatedGas;
   static unsigned long lastBlinkTime = 0;
   if (canBaoDong) {
-    if (millis() - lastBlinkTime > ((forcedEntryAlarm || fireDetected || gasDetected || simulatedIntrusion) ? 150UL : 400UL)) {
+    if (millis() - lastBlinkTime > ((forcedEntryAlarm || fireDetected || gasDetected || simulatedIntrusion || simulatedFire || simulatedGas) ? 150UL : 400UL)) {
       lastBlinkTime = millis();
       buzzerBlinkState = !buzzerBlinkState;
       digitalWrite(BUZZER_PIN, buzzerBlinkState);
@@ -600,9 +656,6 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       isArmed = s; // Cập nhật trạng thái Armed/Disarmed
       Serial.printf("[LOG] An Ninh -> %s\n", isArmed ? "DA BAT (ARMED)" : "DA TAT (DISARMED)");
     }
-    else if (strcmp(param_name, "Gia Lap Dot Nhap") == 0) {
-      if (s) kichHoatGiaLapDotNhap(); // Nhấn nút trên App -> chuông kêu + camera chụp
-    }
   }
   else if (strcmp(param_name, "Power") == 0) {
     if (strcmp(device_name, "Den Phong Ngu") == 0) { 
@@ -619,6 +672,15 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
     else if (strcmp(device_name, "Rem Cua") == 0) { 
       state_rem_cua = s; prefs.putBool("rem_cua", s); 
       target_step_pos = s ? so_buoc_mo_rem : 0;             
+    }
+    else if (strcmp(device_name, "Gia Lap Dot Nhap") == 0) {
+      if (s) kichHoatGiaLapDotNhap(); // Nhấn nút trên App/Google Home -> chuông kêu + camera chụp
+    }
+    else if (strcmp(device_name, "Gia Lap Lua") == 0) {
+      if (s) kichHoatGiaLapLua(); // Nhấn nút trên App/Google Home -> gia lap bao chay
+    }
+    else if (strcmp(device_name, "Gia Lap Gas") == 0) {
+      if (s) kichHoatGiaLapGas(); // Nhấn nút trên App/Google Home -> gia lap ro ri gas
     }
   }
   param->updateAndReport(val);
@@ -762,10 +824,16 @@ void setup() {
   cardParam.addUIType(ESP_RMAKER_UI_TOGGLE); thiet_bi_an_ninh.addParam(cardParam);
   Param passParam("Doi Mat Khau", ESP_RMAKER_PARAM_POWER, value(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
   passParam.addUIType(ESP_RMAKER_UI_TOGGLE); thiet_bi_an_ninh.addParam(passParam);
-  Param simIntrusionParam("Gia Lap Dot Nhap", ESP_RMAKER_PARAM_POWER, value(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
-  simIntrusionParam.addUIType(ESP_RMAKER_UI_TOGGLE); thiet_bi_an_ninh.addParam(simIntrusionParam);
   thiet_bi_an_ninh.addCb(write_callback);
   my_node.addDevice(thiet_bi_an_ninh);
+
+  // Các switch giả lập độc lập (esp.device.switch) -> hiển thị & bấm được trên Google Home / Alexa
+  gia_lap_dot_nhap.addCb(write_callback);
+  gia_lap_lua.addCb(write_callback);
+  gia_lap_gas.addCb(write_callback);
+  my_node.addDevice(gia_lap_dot_nhap);
+  my_node.addDevice(gia_lap_lua);
+  my_node.addDevice(gia_lap_gas);
 
   Param rainParam("Thoi Tiet", "esp.param.rain", value("Khong Mua - Dang phoi"), PROP_FLAG_READ);
   rainParam.addUIType(ESP_RMAKER_UI_TEXT); thiet_bi_gian_phoi.addParam(rainParam); my_node.addDevice(thiet_bi_gian_phoi);
