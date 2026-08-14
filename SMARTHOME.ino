@@ -435,8 +435,19 @@ void xuLyTouchTTP223() {
 void taskChupAnhCamera(void *pvParameters) {
   if (WiFi.status() == WL_CONNECTED) { 
     HTTPClient http;
-    http.begin("http://" + esp32CamHost + "/capture"); 
-    http.setTimeout(3000); http.GET(); http.end();
+    String url = "http://" + esp32CamHost + "/capture";
+    Serial.printf("[CAM] Dang goi: %s\n", url.c_str());
+    http.begin(url); 
+    http.setTimeout(3000);
+    int httpCode = http.GET();
+    if (httpCode > 0) {
+      Serial.printf("[CAM] HTTP response code: %d\n", httpCode);
+    } else {
+      Serial.printf("[CAM] LOI: khong ket noi duoc toi camera (%s)\n", http.errorToString(httpCode).c_str());
+    }
+    http.end();
+  } else {
+    Serial.println(F("[CAM] LOI: ESP32 Main chua ket noi WiFi, khong the goi camera."));
   }
   vTaskDelete(NULL);
 }
