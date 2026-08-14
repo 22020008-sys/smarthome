@@ -1,6 +1,6 @@
 /*
  * ============================================================
- * SMART HOME - MAIN (OPTIMIZED VERSION + PUSH NOTIFICATION)
+ * SMART HOME - MAIN 
  * ============================================================
  */
 
@@ -61,9 +61,6 @@ bool        otaReady     = false;
 #define SERVO_PIN         15    
 #define KEYPAD_I2C_ADDR   0x20
 
-// ==============================================================================
-// KHAI BÁO RÈM CỬA
-// ==============================================================================
 #define STEP_IN1 1  
 #define STEP_IN2 2  
 #define STEP_IN3 6  
@@ -73,7 +70,7 @@ const int stepMatrix[8][4] = {
   {1, 0, 0, 0}, {1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 0},
   {0, 0, 1, 0}, {0, 0, 1, 1}, {0, 0, 0, 1}, {1, 0, 0, 1}
 };
-long so_buoc_mo_rem = 9000; 
+long so_buoc_mo_rem = 8300; 
 volatile long current_step_pos = 0; 
 volatile long target_step_pos  = 0; 
 int stepDelay = 3;
@@ -96,7 +93,7 @@ byte validCards[MAX_CARDS][4];
 int numCards = 0;
 bool quanLyTheMode = false;
 bool doiMatKhauMode = false;
-bool isArmed = true; // Chế độ an ninh (Mặc định bật)
+bool isArmed = true;
 
 BH1750 bh1750_trong(0x23); 
 BH1750 bh1750_ngoai(0x5C);
@@ -106,11 +103,9 @@ int lux_ngoai = 0;
 int sensorSendState = 0; 
 unsigned long lastSensorSendTick = 0;
 
-// OLED Non-blocking variables
 unsigned long oledMessageTimer = 0;
 #define OLED_MSG_DURATION 2000
 
-// --- THÔNG SỐ TỰ ĐỘNG ĐIỀU CHỈNH ĐÈN  ---
 int target_lux = 300;           
 #define LUX_TOLERANCE       20   
 #define PWM_STEP            15   
@@ -157,13 +152,13 @@ bool intrusionDetected      = false;
 bool forcedEntryAlarm       = false;
 unsigned long forcedEntryAlarmStart = 0;
 #define FORCED_ALARM_DURATION  15000UL
-bool simulatedIntrusion            = false; // Giả lập đột nhập từ nút nhấn trên App
+bool simulatedIntrusion            = false; 
 unsigned long simulatedIntrusionStart = 0;
 #define SIMULATED_ALARM_DURATION  15000UL
-bool simulatedFire                 = false; // Giả lập lửa từ nút nhấn trên App
+bool simulatedFire                 = false;
 unsigned long simulatedFireStart   = 0;
 #define SIMULATED_FIRE_DURATION   15000UL
-bool simulatedGas                  = false; // Giả lập gas từ nút nhấn trên App
+bool simulatedGas                  = false; 
 unsigned long simulatedGasStart    = 0;
 #define SIMULATED_GAS_DURATION    15000UL
 bool buzzerBlinkState       = false; 
@@ -182,8 +177,7 @@ static Switch quat_ngu  ("Quat Phong Ngu",  NULL, false);
 static Switch quat_bep  ("Quat Bep",        NULL, false);
 static Switch may_bom   ("May Bom",         NULL, false); 
 static Switch rem_cua   ("Rem Cua",         NULL, false);
-// Các switch "giả lập" được tách thành Device độc lập (esp.device.switch)
-// để Google Home / Alexa nhận diện và hiển thị được (Param lồng trong Device Sensor sẽ không lộ ra ngoài)
+static Switch mo_cua_app("Mo Cua Tu App", NULL, false);
 static Switch gia_lap_dot_nhap("Gia Lap Dot Nhap", NULL, false);
 static Switch gia_lap_gas     ("Gia Lap Gas",      NULL, false);
 static Switch gia_lap_lua     ("Gia Lap Lua",      NULL, false);
@@ -300,6 +294,7 @@ void moCua() {
   if (!isDoorOpen) { 
     setServoAngle(SERVO_PIN, OPEN_POS); 
     isDoorOpen = true;
+    mo_cua_app.updateAndReportParam("Power", true);
   } 
   forcedEntryAlarm = false;
 }
@@ -309,6 +304,7 @@ void dongCua() {
     setServoAngle(SERVO_PIN, CLOSED_POS);
     isDoorOpen = false;
     doorClosingGraceUntil = millis() + DOOR_CLOSE_GRACE_MS; 
+    mo_cua_app.updateAndReportParam("Power", false);
   }
 }
 
@@ -325,7 +321,6 @@ void xuLyTruyCapSai(const char *nguon) {
   } 
 }
 
-// FIX 1: Non-blocking OLED Message
 void hienThiKetQuaMatKhau(bool dungMatKhau) {
   oled.clearDisplay(); oled.setTextColor(SSD1306_WHITE); oled.setTextSize(2);
   if (dungMatKhau) { 
@@ -335,7 +330,7 @@ void hienThiKetQuaMatKhau(bool dungMatKhau) {
     oled.setCursor(28, 10); oled.println("SAI!"); oled.setTextSize(1); oled.setCursor(12, 40); oled.println("Vui long thu lai"); 
   }
   oled.display();
-  oledMessageTimer = millis(); // Đánh dấu thời điểm bắt đầu hiện thông báo
+  oledMessageTimer = millis(); 
 }
 
 void hienThiNhapMatKhau() {
@@ -447,17 +442,15 @@ void taskChupAnhCamera(void *pvParameters) {
 }
 
 // ==============================================================================
-// NÚT NHẤN GIẢ LẬP ĐỘT NHẬP (Điều khiển từ App RainMaker)
+// NÚT NHẤN GIẢ LẬP ĐỘT NHẬP
 // ==============================================================================
 void kichHoatGiaLapDotNhap() {
   Serial.println(F("[LOG] Da kich hoat GIA LAP DOT NHAP tu App!"));
   simulatedIntrusion = true;
   simulatedIntrusionStart = millis();
   thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "GIA LAP DOT NHAP");
-  esp_rmaker_raise_alert("Da kich hoat gia lap dot nhap!"); // <-- Push notification
-  // Kích hoạt camera chụp ảnh ngay lập tức (không chặn luồng chính)
+  esp_rmaker_raise_alert("Da kich hoat gia lap dot nhap!"); 
   xTaskCreate(taskChupAnhCamera, "CameraTaskSim", 4096, NULL, 1, NULL);
-  // Trả nút về trạng thái OFF ngay để App/Google Home hiển thị như một nút nhấn (không phải công tắc giữ trạng thái)
   gia_lap_dot_nhap.updateAndReportParam("Power", false);
 }
 
@@ -466,8 +459,8 @@ void kichHoatGiaLapLua() {
   simulatedFire = true;
   simulatedFireStart = millis();
   cam_bien_moi_truong.updateAndReportParam("Bao Chay", "CO LUA (GIA LAP)");
-  esp_rmaker_raise_alert("CANH BAO CHAY! (Gia lap tu App)"); // <-- Push notification
-  gia_lap_lua.updateAndReportParam("Power", false); // Trả nút về OFF (kieu nut nhan)
+  esp_rmaker_raise_alert("CANH BAO CHAY! (Gia lap tu App)"); 
+  gia_lap_lua.updateAndReportParam("Power", false);
 }
 
 void kichHoatGiaLapGas() {
@@ -475,17 +468,14 @@ void kichHoatGiaLapGas() {
   simulatedGas = true;
   simulatedGasStart = millis();
   cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", "CO GAS (GIA LAP)");
-  esp_rmaker_raise_alert("CANH BAO: Ro ri Gas! (Gia lap tu App)"); // <-- Push notification
-  gia_lap_gas.updateAndReportParam("Power", false); // Trả nút về OFF (kieu nut nhan)
-}
-
-// FIX 2 & 3: Oversampling Gas & Chế độ Armed/Disarmed
+  esp_rmaker_raise_alert("CANH BAO: Ro ri Gas! (Gia lap tu App)"); 
+  gia_lap_gas.updateAndReportParam("Power", false); 
 int readGasAnalogOversampled() {
   long sum = 0;
   for(int i = 0; i < 16; i++) {
     sum += analogRead(GAS_ANALOG_PIN);
   }
-  return (int)(sum >> 4); // Chia 16 lấy trung bình
+  return (int)(sum >> 4);
 }
 
 void xuLyCacCamBienAnNinh() {
@@ -494,38 +484,32 @@ void xuLyCacCamBienAnNinh() {
   static unsigned long doorChangeTime = 0;
   if (doorSensorOpen != lastRawDoor) { lastRawDoor = doorSensorOpen; doorChangeTime = millis(); }
   if (millis() - doorChangeTime >= 300UL) stableDoorState = doorSensorOpen;
-
   static bool lastIntrusionState = false;
-  // CHỈ BÁO ĐỘT NHẬP KHI ĐANG Ở CHẾ ĐỘ ARMED
   intrusionDetected = (stableDoorState && !isDoorOpen && millis() > doorClosingGraceUntil && isArmed);
-  
   if (intrusionDetected != lastIntrusionState) {
     lastIntrusionState = intrusionDetected;
     if (intrusionDetected) {
       thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "DOT NHAP");
-      esp_rmaker_raise_alert("Canh bao: Phat hien dot nhap!"); // <-- Push notification
+      esp_rmaker_raise_alert("Canh bao: Phat hien dot nhap!");
       xTaskCreate(taskChupAnhCamera, "CameraTask", 4096, NULL, 1, NULL);
     } else if (!forcedEntryAlarm) thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "Binh thuong");
   }
-
   static bool lastForcedAlarm = false;
   if (forcedEntryAlarm && (millis() - forcedEntryAlarmStart > FORCED_ALARM_DURATION)) forcedEntryAlarm = false;
   if (forcedEntryAlarm != lastForcedAlarm) {
     lastForcedAlarm = forcedEntryAlarm;
     if (forcedEntryAlarm) {
       thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "NGHI VAN SAT NHAP");
-      esp_rmaker_raise_alert("Canh bao: Nghi van pha cua / sat nhap!"); // <-- Push notification
+      esp_rmaker_raise_alert("Canh bao: Nghi van pha cua / sat nhap!");
     }
     else if (!intrusionDetected) thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "Binh thuong");
   }
-
   bool currentFire = (digitalRead(FLAME_SENSOR_PIN) == LOW);
   if (currentFire != fireDetected) { 
     fireDetected = currentFire;
     cam_bien_moi_truong.updateAndReportParam("Bao Chay", fireDetected ? "CO LUA" : "An toan");
-    if (fireDetected) esp_rmaker_raise_alert("CANH BAO CHAY! Phat hien ngon lua!"); // <-- Push notification
+    if (fireDetected) esp_rmaker_raise_alert("CANH BAO CHAY! Phat hien ngon lua!");
   }
-
   bool currentGas = (digitalRead(GAS_SENSOR_PIN) == LOW); 
   currentGasLevel = readGasAnalogOversampled(); // Dùng hàm mới có oversampling
   if (currentGas != gasDetected) { 
@@ -533,7 +517,6 @@ void xuLyCacCamBienAnNinh() {
     cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", gasDetected ? "CO GAS" : "An toan");
     if (gasDetected) esp_rmaker_raise_alert("CANH BAO: Phat hien ro ri Gas!"); // <-- Push notification
   }
-
   static bool lastSimulatedAlarm = false;
   if (simulatedIntrusion && (millis() - simulatedIntrusionStart > SIMULATED_ALARM_DURATION)) simulatedIntrusion = false;
   if (simulatedIntrusion != lastSimulatedAlarm) {
@@ -542,7 +525,6 @@ void xuLyCacCamBienAnNinh() {
       thiet_bi_an_ninh.updateAndReportParam("Trang Thai An Ninh", "Binh thuong");
     }
   }
-
   static bool lastSimulatedFire = false;
   if (simulatedFire && (millis() - simulatedFireStart > SIMULATED_FIRE_DURATION)) simulatedFire = false;
   if (simulatedFire != lastSimulatedFire) {
@@ -551,7 +533,6 @@ void xuLyCacCamBienAnNinh() {
       cam_bien_moi_truong.updateAndReportParam("Bao Chay", "An toan");
     }
   }
-
   static bool lastSimulatedGas = false;
   if (simulatedGas && (millis() - simulatedGasStart > SIMULATED_GAS_DURATION)) simulatedGas = false;
   if (simulatedGas != lastSimulatedGas) {
@@ -560,7 +541,6 @@ void xuLyCacCamBienAnNinh() {
       cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", "An toan");
     }
   }
-
   bool canBaoDong = intrusionDetected || forcedEntryAlarm || fireDetected || gasDetected ||
                     simulatedIntrusion || simulatedFire || simulatedGas;
   static unsigned long lastBlinkTime = 0;
@@ -589,16 +569,12 @@ void xuLyThuDoTuDong() {
     }
   }
 }
-
 float lastTemp = NAN; float lastHumid = NAN;
 void docDHTVaHienThiLCD() {
-  // Nếu đang nhập pass hoặc đang hiện kết quả pass (2 giây), không ghi đè LCD
   if (dangNhapMatKhau || doiMatKhauMode || (millis() - oledMessageTimer < OLED_MSG_DURATION)) return;
-  
   float t = dht.readTemperature(); float h = dht.readHumidity();
   bool tValid = (!isnan(t) && t > -40.0f && t < 80.0f);
-  bool hValid = (!isnan(h) && h >= 0.0f  && h <= 100.0f);
-  
+  bool hValid = (!isnan(h) && h >= 0.0f  && h <= 100.0f); 
   oled.clearDisplay(); oled.setTextColor(SSD1306_WHITE);
   if (tValid && hValid) {
     lastTemp = t; lastHumid = h;
@@ -641,7 +617,6 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
   const char *device_name = device->getDeviceName();
   const char *param_name  = param->getParamName();
   bool s = val.val.b;
-
   if (strcmp(device_name, "Moi Truong") == 0) {
     if (strcmp(param_name, "Nguong Sang") == 0) {
       target_lux = val.val.i; prefs.putInt("target_lux", target_lux);
@@ -653,7 +628,7 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       doiMatKhauMode = s; if (doiMatKhauMode) { inputBuffer = ""; hienThiNhapMatKhau(); }
     }
     else if (strcmp(param_name, "Che Do An Ninh") == 0) {
-      isArmed = s; // Cập nhật trạng thái Armed/Disarmed
+      isArmed = s;
       Serial.printf("[LOG] An Ninh -> %s\n", isArmed ? "DA BAT (ARMED)" : "DA TAT (DISARMED)");
     }
   }
@@ -673,14 +648,18 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       state_rem_cua = s; prefs.putBool("rem_cua", s); 
       target_step_pos = s ? so_buoc_mo_rem : 0;             
     }
+    else if (strcmp(device_name, "Mo Cua Tu App") == 0) {
+      if (s) moCua();
+    else dongCua();
+    }
     else if (strcmp(device_name, "Gia Lap Dot Nhap") == 0) {
-      if (s) kichHoatGiaLapDotNhap(); // Nhấn nút trên App/Google Home -> chuông kêu + camera chụp
+      if (s) kichHoatGiaLapDotNhap();
     }
     else if (strcmp(device_name, "Gia Lap Lua") == 0) {
-      if (s) kichHoatGiaLapLua(); // Nhấn nút trên App/Google Home -> gia lap bao chay
+      if (s) kichHoatGiaLapLua(); 
     }
     else if (strcmp(device_name, "Gia Lap Gas") == 0) {
-      if (s) kichHoatGiaLapGas(); // Nhấn nút trên App/Google Home -> gia lap ro ri gas
+      if (s) kichHoatGiaLapGas();
     }
   }
   param->updateAndReport(val);
@@ -738,6 +717,7 @@ void reportInitialStates() {
   rem_cua.updateAndReportParam   ("Power", state_rem_cua); 
   cam_bien_moi_truong.updateAndReportParam("Nguong Sang", target_lux);
   thiet_bi_an_ninh.updateAndReportParam("Che Do An Ninh", isArmed);
+  mo_cua_app.updateAndReportParam("Power", isDoorOpen);
   syncAllDevices();
 }
 
@@ -827,13 +807,14 @@ void setup() {
   thiet_bi_an_ninh.addCb(write_callback);
   my_node.addDevice(thiet_bi_an_ninh);
 
-  // Các switch giả lập độc lập (esp.device.switch) -> hiển thị & bấm được trên Google Home / Alexa
   gia_lap_dot_nhap.addCb(write_callback);
   gia_lap_lua.addCb(write_callback);
   gia_lap_gas.addCb(write_callback);
+  mo_cua_app.addCb(write_callback);
   my_node.addDevice(gia_lap_dot_nhap);
   my_node.addDevice(gia_lap_lua);
   my_node.addDevice(gia_lap_gas);
+  my_node.addDevice(mo_cua_app);
 
   Param rainParam("Thoi Tiet", "esp.param.rain", value("Khong Mua - Dang phoi"), PROP_FLAG_READ);
   rainParam.addUIType(ESP_RMAKER_UI_TEXT); thiet_bi_gian_phoi.addParam(rainParam); my_node.addDevice(thiet_bi_gian_phoi);
@@ -841,7 +822,9 @@ void setup() {
   RMaker.enableTZService(); RMaker.enableSchedule(); RMaker.start();
   WiFi.onEvent(sysProvEvent);
   WiFiProv.beginProvision(NETWORK_PROV_SCHEME_SOFTAP, NETWORK_PROV_SCHEME_HANDLER_NONE, NETWORK_PROV_SECURITY_1, pop, service_name);
+  WiFiProv.printQR(service_name, pop, "softap");
 }
+
 
 void loop() {
   handleSubSerial(); xuLyWiFiReconnect();
