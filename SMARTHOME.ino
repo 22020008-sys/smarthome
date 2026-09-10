@@ -70,11 +70,20 @@ const int stepMatrix[8][4] = {
   {1, 0, 0, 0}, {1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, 1, 0},
   {0, 0, 1, 0}, {0, 0, 1, 1}, {0, 0, 0, 1}, {1, 0, 0, 1}
 };
-long so_buoc_mo_rem = 8300; 
+long so_buoc_mo_rem = 8000; 
 volatile long current_step_pos = 0; 
 volatile long target_step_pos  = 0; 
 int stepDelay = 3;
 TaskHandle_t StepperTask;
+
+// Homing rèm: vị trí đóng hoàn toàn được xem là HOME = 0.
+// Nếu mất điện khi rèm đang chạy, lần khởi động sau sẽ tự chạy về HOME
+// rồi mới trở lại trạng thái đã lưu.
+#define CURTAIN_HOME_EXTRA_STEPS 300L
+#define CURTAIN_HOME_STEP_DELAY  4
+volatile bool curtainHomeDone = true;
+volatile bool curtainMotionActive = false;
+bool curtainNeedHomeOnBoot = false;
 
 // ==============================================================================
 // BIẾN TOÀN CỤC
@@ -130,6 +139,10 @@ bool isDoorOpen = false;
 unsigned long doorClosingGraceUntil = 0;         
 const unsigned long DOOR_CLOSE_GRACE_MS = 1200;  
 bool isRaining = false;
+bool rainRawState = false;
+unsigned long rainRawChangeTime = 0;
+#define RAIN_WET_CONFIRM_MS  1500UL
+#define RAIN_DRY_CONFIRM_MS  5000UL
 
 void setServoAngle(uint8_t pin, int angle) {
   int duty = map(angle, 0, 180, 410, 1966);
@@ -217,7 +230,7 @@ void capNhatTuSub(const String &maDevice, int value) {
   if (maDevice == "DN") { 
     state_den_ngu = state; 
     den_ngu.updateAndReportParam("Power", state); 
-    prefs.putBool("den_khach", state);
+    prefs.putBool("den_ngu", state);
     if (state) current_pwm_dn = MAX_PWM_DN;
     else current_pwm_dn = 0;
   }
@@ -263,7 +276,8 @@ void xuLyTuDongAnhSang() {
     } 
     if (current_pwm_dn >= MAX_PWM_DN && !state_rem_cua) {
       state_rem_cua = true;
-      target_step_pos = so_buoc_mo_rem; 
+      target_step_pos = so_buoc_mo_rem;
+      prefs.putBool("rem_moving", true);
       rem_cua.updateAndReportParam("Power", true);
       prefs.putBool("rem_cua", true);
     }
@@ -276,7 +290,8 @@ void xuLyTuDongAnhSang() {
     }
     else if (state_rem_cua) {
       state_rem_cua = false;
-      target_step_pos = 0; 
+      target_step_pos = 0;
+      prefs.putBool("rem_moving", true);
       rem_cua.updateAndReportParam("Power", false);
       prefs.putBool("rem_cua", false);
     }
@@ -481,6 +496,8 @@ void kichHoatGiaLapGas() {
   cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", "CO GAS (GIA LAP)");
   esp_rmaker_raise_alert("CANH BAO: Ro ri Gas! (Gia lap tu App)"); 
   gia_lap_gas.updateAndReportParam("Power", false); 
+}
+
 int readGasAnalogOversampled() {
   long sum = 0;
   for(int i = 0; i < 16; i++) {
@@ -568,13 +585,22 @@ void xuLyCacCamBienAnNinh() {
 }
 
 void xuLyThuDoTuDong() {
-  bool currentRain = (digitalRead(RAIN_SENSOR_PIN) == LOW);
-  if (currentRain != isRaining) {
-    isRaining = currentRain;
-    if (isRaining) { 
+  bool currentRainRaw = (digitalRead(RAIN_SENSOR_PIN) == LOW);
+
+  // Chỉ ghi nhận khi mức tín hiệu thô thay đổi, sau đó chờ nó ổn định đủ lâu.
+  if (currentRainRaw != rainRawState) {
+    rainRawState = currentRainRaw;
+    rainRawChangeTime = millis();
+  }
+
+  unsigned long confirmTime = currentRainRaw ? RAIN_WET_CONFIRM_MS : RAIN_DRY_CONFIRM_MS;
+  if (currentRainRaw != isRaining && (millis() - rainRawChangeTime >= confirmTime)) {
+    isRaining = currentRainRaw;
+
+    if (isRaining) {
       setServoAngle(CLOTHES_SERVO_PIN, CLOTHES_IN_POS);
       thiet_bi_gian_phoi.updateAndReportParam("Thoi Tiet", "CO MUA - Da thu do");
-    } else { 
+    } else {
       setServoAngle(CLOTHES_SERVO_PIN, CLOTHES_OUT_POS);
       thiet_bi_gian_phoi.updateAndReportParam("Thoi Tiet", "Khong Mua - Dang phoi");
     }
@@ -655,9 +681,16 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
     else if (strcmp(device_name, "Quat Phong Ngu") == 0) { state_quat_ngu = s; sendDeviceCmd("QN", s); prefs.putBool("quat_ngu", s); }
     else if (strcmp(device_name, "Quat Bep") == 0) { state_quat_bep = s; sendDeviceCmd("QB", s); prefs.putBool("quat_bep", s); }
     else if (strcmp(device_name, "May Bom") == 0) { state_may_bom = s; sendDeviceCmd("MB", s); prefs.putBool("may_bom", s); } 
-    else if (strcmp(device_name, "Rem Cua") == 0) { 
-      state_rem_cua = s; prefs.putBool("rem_cua", s); 
-      target_step_pos = s ? so_buoc_mo_rem : 0;             
+    else if (strcmp(device_name, "Rem Cua") == 0) {
+      state_rem_cua = s;
+      prefs.putBool("rem_cua", s);
+      target_step_pos = s ? so_buoc_mo_rem : 0;
+      if (curtainHomeDone) {
+        prefs.putBool("rem_moving", current_step_pos != target_step_pos);
+      } else {
+        // Nếu đang homing thì giữ lại yêu cầu mới; sau HOME rèm sẽ chạy đến vị trí này.
+        prefs.putBool("rem_moving", true);
+      }
     }
     else if (strcmp(device_name, "Mo Cua Tu App") == 0) {
       if (s) moCua();
@@ -678,15 +711,44 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
 
 void stepperCode(void * pvParameters) {
   int step_idx = 0;
+
+  // Chỉ homing khi lần trước mất điện/reset trong lúc rèm đang di chuyển.
+  // HOME = vị trí đóng hoàn toàn (0).
+  if (curtainNeedHomeOnBoot) {
+    curtainHomeDone = false;
+    Serial.println(F("[REM] Phat hien lan truoc rem dang chay. Bat dau HOME ve vi tri dong..."));
+
+    long homeSteps = so_buoc_mo_rem + CURTAIN_HOME_EXTRA_STEPS;
+    for (long i = 0; i < homeSteps; i++) {
+      step_idx = (step_idx - 1 + 8) % 8;
+      digitalWrite(STEP_IN1, stepMatrix[step_idx][0]);
+      digitalWrite(STEP_IN2, stepMatrix[step_idx][1]);
+      digitalWrite(STEP_IN3, stepMatrix[step_idx][2]);
+      digitalWrite(STEP_IN4, stepMatrix[step_idx][3]);
+      vTaskDelay(pdMS_TO_TICKS(CURTAIN_HOME_STEP_DELAY));
+    }
+
+    current_step_pos = 0;
+    target_step_pos = state_rem_cua ? so_buoc_mo_rem : 0;
+    curtainHomeDone = true;
+    curtainMotionActive = (current_step_pos != target_step_pos);
+    prefs.putBool("rem_moving", curtainMotionActive);
+    Serial.println(F("[REM] HOME xong. Da dat moc vi tri rem = 0."));
+  }
+
   for(;;) {
     if (current_step_pos < target_step_pos) {
-      current_step_pos++; step_idx = (step_idx + 1) % 8;
+      curtainMotionActive = true;
+      current_step_pos++;
+      step_idx = (step_idx + 1) % 8;
       digitalWrite(STEP_IN1, stepMatrix[step_idx][0]); digitalWrite(STEP_IN2, stepMatrix[step_idx][1]);
       digitalWrite(STEP_IN3, stepMatrix[step_idx][2]); digitalWrite(STEP_IN4, stepMatrix[step_idx][3]);
       vTaskDelay(pdMS_TO_TICKS(stepDelay));
     } 
     else if (current_step_pos > target_step_pos) {
-      current_step_pos--; step_idx = (step_idx - 1 + 8) % 8;
+      curtainMotionActive = true;
+      current_step_pos--;
+      step_idx = (step_idx - 1 + 8) % 8;
       digitalWrite(STEP_IN1, stepMatrix[step_idx][0]); digitalWrite(STEP_IN2, stepMatrix[step_idx][1]);
       digitalWrite(STEP_IN3, stepMatrix[step_idx][2]); digitalWrite(STEP_IN4, stepMatrix[step_idx][3]);
       vTaskDelay(pdMS_TO_TICKS(stepDelay));
@@ -694,6 +756,13 @@ void stepperCode(void * pvParameters) {
     else {
       digitalWrite(STEP_IN1, LOW); digitalWrite(STEP_IN2, LOW);
       digitalWrite(STEP_IN3, LOW); digitalWrite(STEP_IN4, LOW);
+
+      if (curtainMotionActive) {
+        curtainMotionActive = false;
+        prefs.putBool("rem_moving", false);
+        Serial.printf("[REM] Da den vi tri dich: %ld buoc.\n", current_step_pos);
+      }
+
       vTaskDelay(pdMS_TO_TICKS(100)); 
     }
   }
@@ -728,6 +797,7 @@ void reportInitialStates() {
   rem_cua.updateAndReportParam   ("Power", state_rem_cua); 
   cam_bien_moi_truong.updateAndReportParam("Nguong Sang", target_lux);
   thiet_bi_an_ninh.updateAndReportParam("Che Do An Ninh", isArmed);
+  thiet_bi_gian_phoi.updateAndReportParam("Thoi Tiet", isRaining ? "CO MUA - Da thu do" : "Khong Mua - Dang phoi");
   mo_cua_app.updateAndReportParam("Power", isDoorOpen);
   syncAllDevices();
 }
@@ -735,7 +805,7 @@ void reportInitialStates() {
 void setup() {
   Serial.begin(115200); 
   ledcAttach(SERVO_PIN, SERVO_FREQ, SERVO_RES); setServoAngle(SERVO_PIN, CLOSED_POS);
-  ledcAttach(CLOTHES_SERVO_PIN, SERVO_FREQ, SERVO_RES); setServoAngle(CLOTHES_SERVO_PIN, CLOTHES_OUT_POS);
+  ledcAttach(CLOTHES_SERVO_PIN, SERVO_FREQ, SERVO_RES);
   
   Serial1.begin(SUB_BAUD, SERIAL_8N1, SUB_RX_PIN, SUB_TX_PIN);
   pinMode(STEP_IN1, OUTPUT); pinMode(STEP_IN2, OUTPUT); pinMode(STEP_IN3, OUTPUT); pinMode(STEP_IN4, OUTPUT);
@@ -746,6 +816,7 @@ void setup() {
   state_quat_khach = prefs.getBool("quat_khach", false); state_quat_ngu = prefs.getBool("quat_ngu", false);
   state_quat_bep = prefs.getBool("quat_bep", false); state_may_bom = prefs.getBool("may_bom", false);
   state_rem_cua = prefs.getBool("rem_cua", false);
+  curtainNeedHomeOnBoot = prefs.getBool("rem_moving", false);
   matKhauDung = prefs.getString("mat_khau", "1234");
   target_lux = prefs.getInt("target_lux", 300);
 
@@ -763,10 +834,29 @@ void setup() {
   pinMode(BUZZER_PIN, OUTPUT); digitalWrite(BUZZER_PIN, LOW);
   pinMode(DOOR_SENSOR_PIN, INPUT_PULLUP); pinMode(FLAME_SENSOR_PIN, INPUT_PULLUP); 
   pinMode(GAS_SENSOR_PIN, INPUT_PULLUP); pinMode(GAS_ANALOG_PIN, INPUT);        
-  pinMode(RAIN_SENSOR_PIN, INPUT_PULLUP); pinMode(TOUCH_SENSOR_PIN, INPUT); 
-  
-  current_step_pos = state_rem_cua ? so_buoc_mo_rem : 0;
-  target_step_pos = current_step_pos;
+  pinMode(RAIN_SENSOR_PIN, INPUT_PULLUP); pinMode(TOUCH_SENSOR_PIN, INPUT);
+
+  // Lấy mẫu nhanh lúc khởi động để servo giàn phơi không chạy sai hướng trước khi vòng loop bắt đầu.
+  int wetSamples = 0;
+  for (int i = 0; i < 10; i++) {
+    if (digitalRead(RAIN_SENSOR_PIN) == LOW) wetSamples++;
+    delay(20);
+  }
+  isRaining = (wetSamples >= 6);
+  rainRawState = isRaining;
+  rainRawChangeTime = millis();
+  setServoAngle(CLOTHES_SERVO_PIN, isRaining ? CLOTHES_IN_POS : CLOTHES_OUT_POS);
+
+  if (curtainNeedHomeOnBoot) {
+    // Vị trí thật không còn chắc chắn vì lần trước mất điện khi đang chạy.
+    current_step_pos = 0;
+    target_step_pos = 0;
+    curtainHomeDone = false;
+  } else {
+    current_step_pos = state_rem_cua ? so_buoc_mo_rem : 0;
+    target_step_pos = current_step_pos;
+    curtainHomeDone = true;
+  }
   xTaskCreatePinnedToCore(stepperCode, "StepperTask", 4096, NULL, 1, &StepperTask, 0);
 
   SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, SS_PIN); mfrc522.PCD_Init();

@@ -540,6 +540,86 @@
         .chart-controls { flex-direction: column; align-items: stretch; }
         .chart-controls .right-group { justify-content: space-between; }
     }
+
+
+    /* ============ OPTIMIZED DASHBOARD LAYER ============ */
+    .section.sec-login { max-width: 620px; margin-left: auto; margin-right: auto; }
+    #dashboard-section { animation: fadeInUp .35s ease both; }
+    #dynamic-devices .section { margin-bottom: 14px; padding: 18px 20px; }
+    #dynamic-devices .category-divider { margin-top: 24px; }
+
+    .overview-panel {
+        margin-bottom: 14px; padding: 20px 22px;
+        background: linear-gradient(135deg, rgba(47,111,237,.08), rgba(124,92,240,.05) 48%, rgba(12,154,128,.05));
+        border: 1px solid var(--border); border-radius: var(--radius);
+        box-shadow: 0 16px 34px -28px rgba(30,40,70,.18);
+    }
+    .overview-head { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:14px; }
+    .overview-kicker { font:600 10px/1.2 var(--mono); letter-spacing:1.8px; color:var(--accent); margin-bottom:5px; }
+    .overview-node { font:500 10.5px/1.2 var(--mono); color:var(--text-faint); background:var(--bg-2); border:1px solid var(--border-soft); padding:5px 9px; border-radius:999px; max-width:45%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .overview-grid { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:10px; }
+    .overview-card { min-width:0; display:flex; align-items:center; gap:10px; padding:13px 14px; background:rgba(255,255,255,.72); border:1px solid var(--border-soft); border-radius:12px; }
+    .overview-icon { width:34px; height:34px; flex:0 0 34px; display:grid; place-items:center; border-radius:10px; background:var(--panel-hover); font-size:17px; }
+    .overview-card > div { min-width:0; }
+    .overview-label { display:block; font-size:10.5px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
+    .overview-card strong { display:block; font:700 18px/1.15 var(--mono); color:var(--text); white-space:nowrap; }
+
+    .alarm-banner { display:flex; align-items:center; gap:12px; margin-bottom:16px; padding:12px 14px; border-radius:12px; border:1px solid; transition:.2s ease; }
+    .alarm-banner.is-safe { background:rgba(22,163,74,.07); border-color:rgba(22,163,74,.25); }
+    .alarm-banner.is-danger { background:rgba(225,29,85,.09); border-color:rgba(225,29,85,.55); box-shadow:0 0 0 3px rgba(225,29,85,.05); }
+    .alarm-banner-icon { width:34px; height:34px; flex:0 0 34px; display:grid; place-items:center; border-radius:50%; font:700 16px var(--mono); background:rgba(22,163,74,.12); color:var(--live); }
+    .alarm-banner.is-danger .alarm-banner-icon { background:rgba(225,29,85,.14); color:var(--warn); animation:pulse 1s infinite; }
+    .alarm-banner-copy { min-width:0; flex:1; display:flex; flex-direction:column; gap:2px; }
+    .alarm-banner-copy strong { font-size:13px; }
+    .alarm-banner-copy span { font-size:11.5px; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .alarm-banner-count { font:600 10.5px var(--mono); color:var(--text-dim); white-space:nowrap; }
+    .alarm-banner.is-danger .alarm-banner-count { color:var(--warn); }
+
+    .toolbar { position:sticky; top:8px; z-index:20; backdrop-filter:blur(10px); background:rgba(255,255,255,.88); }
+    .toolbar .btn-logout { color:var(--warn); }
+    .toolbar .btn-logout:hover { border-color:rgba(225,29,85,.45); color:var(--warn); }
+    .device-card .name { font-weight:650; }
+    .device-card .device-state { text-transform:none; }
+
+    .log-section.collapsed .terminal-chrome,
+    .log-section.collapsed #logs { display:none; }
+    .log-section.collapsed { padding-bottom:16px; }
+    .log-actions { display:flex; align-items:center; gap:8px; }
+    .log-toggle-btn { width:auto; padding:6px 10px; font-size:11px; }
+
+    .toast-stack { position:fixed; right:18px; bottom:18px; z-index:9999; display:flex; flex-direction:column; gap:9px; width:min(360px, calc(100vw - 32px)); pointer-events:none; }
+    .toast { pointer-events:auto; display:flex; align-items:flex-start; gap:10px; padding:11px 13px; background:rgba(16,24,38,.96); color:#f8fafc; border:1px solid rgba(255,255,255,.12); border-radius:11px; box-shadow:0 16px 40px -18px rgba(0,0,0,.5); font-size:12.5px; line-height:1.4; animation:toastIn .22s ease both; }
+    .toast.success { border-left:3px solid #22c55e; }
+    .toast.error { border-left:3px solid #fb4770; }
+    .toast.warn { border-left:3px solid #f59e0b; }
+    .toast.info { border-left:3px solid #4d8dff; }
+    @keyframes toastIn { from { opacity:0; transform:translateY(8px) scale(.98); } to { opacity:1; transform:none; } }
+
+    @media (max-width: 900px) {
+        .overview-grid { grid-template-columns:repeat(3, minmax(0,1fr)); }
+        .toolbar { position:relative; top:auto; }
+    }
+    @media (max-width: 640px) {
+        body { padding:12px 10px 36px; background-attachment:scroll; }
+        body::before { opacity:.55; }
+        .masthead-top { padding:14px; }
+        .overview-panel { padding:16px; }
+        .overview-head { align-items:flex-start; }
+        .overview-node { max-width:50%; }
+        .overview-grid { grid-template-columns:repeat(2, minmax(0,1fr)); }
+        .overview-card:last-child { grid-column:span 2; }
+        .toolbar > div:last-child { width:100%; display:grid !important; grid-template-columns:1fr 1fr; }
+        .toolbar .siren-btn-wrap { grid-column:span 2; justify-content:center; }
+        .toolbar button { min-height:40px; }
+        .alarm-banner { align-items:flex-start; }
+        .alarm-banner-count { display:none; }
+        .alarm-banner-copy span { white-space:normal; }
+        .chart-grid { grid-template-columns:1fr; }
+        .chart-card .cc-canvas-wrap { height:170px; }
+        .toast-stack { left:16px; right:16px; bottom:16px; width:auto; }
+        .section, #dynamic-devices .section { box-shadow:none; }
+    }
+
 </style>
 </head>
 <body>
@@ -563,8 +643,8 @@
                     </svg>
                 </span>
                 <div class="brand-text">
-                    <div class="eyebrow">RainMaker · Nút Nhà Thông Minh</div>
-                    <h1>Bảng Điều Khiển Hệ Thống</h1>
+                    <div class="eyebrow">ESP32 · RainMaker · Smart Home</div>
+                    <h1>Smart Home Dashboard</h1>
                 </div>
             </div>
             <div class="masthead-meta">
@@ -644,7 +724,37 @@
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v6h-6"/></svg>
                     Làm mới
                 </button>
+                <button class="btn-ghost btn-logout" onclick="logoutRainMaker()" title="Đăng xuất khỏi phiên RainMaker hiện tại">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M14 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5"/></svg>
+                    Đăng xuất
+                </button>
             </div>
+        </div>
+
+        <section class="overview-panel" aria-label="Tổng quan hệ thống">
+            <div class="overview-head">
+                <div>
+                    <div class="overview-kicker">SYSTEM OVERVIEW</div>
+                    <h2>Tổng Quan Nhà Thông Minh</h2>
+                </div>
+                <span class="overview-node" id="overview-node">Node: --</span>
+            </div>
+            <div class="overview-grid">
+                <div class="overview-card"><span class="overview-icon">🌡️</span><div><span class="overview-label">Nhiệt độ</span><strong id="overview-temp">--</strong></div></div>
+                <div class="overview-card"><span class="overview-icon">💧</span><div><span class="overview-label">Độ ẩm</span><strong id="overview-hum">--</strong></div></div>
+                <div class="overview-card"><span class="overview-icon">☀️</span><div><span class="overview-label">Ánh sáng trong</span><strong id="overview-light">--</strong></div></div>
+                <div class="overview-card"><span class="overview-icon">🌱</span><div><span class="overview-label">Độ ẩm đất</span><strong id="overview-soil">--</strong></div></div>
+                <div class="overview-card"><span class="overview-icon">🔌</span><div><span class="overview-label">Thiết bị đang bật</span><strong id="overview-devices">--/--</strong></div></div>
+            </div>
+        </section>
+
+        <div class="alarm-banner is-safe" id="alarm-banner" role="status" aria-live="polite">
+            <span class="alarm-banner-icon" id="alarm-banner-icon">✓</span>
+            <div class="alarm-banner-copy">
+                <strong id="alarm-banner-title">Hệ thống an toàn</strong>
+                <span id="alarm-banner-detail">Không phát hiện cảnh báo bất thường.</span>
+            </div>
+            <span class="alarm-banner-count" id="alarm-banner-count">0 cảnh báo</span>
         </div>
 
         <!-- Các khối thiết bị được dựng TỰ ĐỘNG từ cấu hình Node lấy về từ RainMaker Cloud.
@@ -670,7 +780,7 @@
                     <div class="seg-group" id="type-group">
                         <button class="seg-btn active" data-type="line" onclick="setChartType('line')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px;margin-right:4px;"><path d="M3 17l5-6 4 4 8-9"/></svg>Line</button>
                         <button class="seg-btn" data-type="bar" onclick="setChartType('bar')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:inline;vertical-align:-1px;margin-right:4px;"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Bar</button>
-                        <button class="seg-btn" data-type="pie" onclick="setChartType('pie')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" style="display:inline;vertical-align:-1px;margin-right:4px;"><path d="M12 2v10l8.5 5A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="10"/></svg>Tròn</button>
+                        <button class="seg-btn" data-type="pie" onclick="setChartType('pie')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" style="display:inline;vertical-align:-1px;margin-right:4px;"><path d="M12 2v10l8.5 5A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="10"/></svg>Đồng hồ</button>
                     </div>
                 </div>
                 <div class="right-group">
@@ -700,10 +810,10 @@
     </div>
 
     <!-- Log hệ thống -->
-    <div class="section sec-log">
+    <div class="section sec-log log-section collapsed" id="log-section">
         <div class="panel-head">
             <h2><span class="sec-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>Log Hệ Thống</h2>
-            <span class="mod-tag">SYS.LOG</span>
+            <div class="log-actions"><span class="mod-tag">SYS.LOG</span><button class="btn-ghost log-toggle-btn" id="log-toggle-btn" onclick="toggleLogPanel()">Mở log</button></div>
         </div>
         <div class="terminal-chrome">
             <span class="tdot r"></span><span class="tdot y"></span><span class="tdot g"></span>
@@ -712,8 +822,9 @@
         <div id="logs">Đang chờ lệnh...</div>
     </div>
 
-    <footer class="app-footer">RainMaker Control Panel · ESP32 Smart Home Node</footer>
+    <footer class="app-footer">Smart Home Dashboard · ESP32 + ESP RainMaker</footer>
 </div>
+<div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="true"></div>
 
 <script>
     let API_BASE = "https://api.rainmaker.espressif.com/v1";
@@ -723,7 +834,10 @@
     let isRefreshing = false;
     let userWantsAutoSync = false;
     let pausedForVisibility = false;
-    const AUTO_SYNC_MS = 2500; // đồng bộ trạng thái thiết bị mỗi 2.5 giây (nhanh nhất có thể an toàn với polling REST, tránh bị API chặn 429)
+    const BASE_AUTO_SYNC_MS = 3000;
+    const MAX_AUTO_SYNC_MS = 15000;
+    let currentAutoSyncMs = BASE_AUTO_SYNC_MS;
+    let alarmingDetails = new Map();
 
     // ==== TỰ ĐỘNG DÒ THIẾT BỊ/THAM SỐ TỪ CẤU HÌNH NODE TRÊN RAINMAKER CLOUD ====
     // Không còn danh sách cứng SWITCH_DEVICES / PARAM_DEFS trong code nữa. Toàn bộ được dựng lại
@@ -747,7 +861,7 @@
         [/thoi tiet|weather|mua|rain|gian phoi/i, "🌦️"], [/camera/i, "📷"], [/chuong|bell|coi|siren|dot nhap/i, "🔔"],
     ];
     function guessIcon(deviceName, paramName) {
-        const text = `${deviceName} ${paramName || ""}`;
+        const text = normalizeVNText(`${deviceName} ${paramName || ''}`);
         for (const [re, icon] of ICON_RULES) if (re.test(text)) return icon;
         return "⚙️";
     }
@@ -760,14 +874,42 @@
     // mọi lúc, kể cả khi trước đó không có ai mở trang web này (ESP32 tự đẩy dữ liệu lên mỗi 60s).
     const RM_TIMEZONE = "Asia/Ho_Chi_Minh";
     let chartPeriod = 'day';      // 'day' | 'week' | 'month' | 'year'
-    let chartType = 'line';       // 'line' | 'bar' | 'pie'
+    let chartType = 'line';       // 'line' | 'bar' | 'pie' (pie = đồng hồ/gauge)
     let chartAnchorDate = new Date(); // ngày mốc đang xem (mặc định hôm nay) — dùng để "lật" qua từng ngày/tuần/tháng/năm
     let seriesCache = {};         // { [cacheKey]: { data:[{x,y}], ts:number } } - cache ngắn hạn để đỡ gọi API liên tục
     const CACHE_TTL_MS = 15000;
     let chartRefreshTimer = null;
     let chartRenderToken = 0;     // guard chống race-condition khi người dùng bấm đổi khung/loại biểu đồ liên tục
 
-    function safeKey(key) { return key.replace(/[^a-zA-Z0-9À-ỹ]+/g, '_'); }
+    function normalizeVNText(value) {
+        return String(value ?? '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+            .toLowerCase().trim();
+    }
+    function hashString(value) {
+        let h = 2166136261;
+        const text = String(value);
+        for (let i = 0; i < text.length; i++) {
+            h ^= text.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        return (h >>> 0).toString(36);
+    }
+    function safeKey(key) {
+        const slug = normalizeVNText(key).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 36) || 'item';
+        return `${slug}_${hashString(key)}`;
+    }
+    function escHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
+    function humanizeParamName(name) {
+        const n = normalizeVNText(name);
+        if (n === 'power') return 'Trạng thái';
+        if (/brightness|do sang|cuong do/.test(n)) return 'Độ sáng';
+        return String(name ?? '');
+    }
     function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
     function paramDef(key) { return PARAM_DEFS.find(p => p.key === key); }
     function roundVal(v) { return Math.round(v * 100) / 100; }
@@ -792,6 +934,57 @@
         pill.classList.remove('state-connecting', 'state-connected', 'state-error');
         if (state) pill.classList.add('state-' + state);
         label.innerText = text;
+    }
+
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    async function rainmakerRequest(urlOrPath, options = {}, config = {}) {
+        const url = /^https?:\/\//i.test(urlOrPath) ? urlOrPath : `${API_BASE}${urlOrPath}`;
+        const timeoutMs = config.timeoutMs ?? 10000;
+        const retries = config.retries ?? 0;
+        let lastError;
+
+        for (let attempt = 0; attempt <= retries; attempt++) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                const text = await response.text();
+                let data = {};
+                if (text) {
+                    try { data = JSON.parse(text); }
+                    catch { data = { raw: text }; }
+                }
+                if (response.ok) return { response, data };
+
+                const error = new Error(data.description || data.message || `HTTP ${response.status}`);
+                error.status = response.status;
+                error.data = data;
+                const retryable = response.status === 429 || response.status >= 500;
+                if (retryable && attempt < retries) {
+                    const retryAfter = Number(response.headers.get('Retry-After'));
+                    await sleep(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 900 * (attempt + 1));
+                    continue;
+                }
+                throw error;
+            } catch (error) {
+                lastError = error;
+                const isAbort = error && error.name === 'AbortError';
+                if ((isAbort || error instanceof TypeError) && attempt < retries) {
+                    await sleep(700 * (attempt + 1));
+                    continue;
+                }
+                if (isAbort) {
+                    const timeoutError = new Error('Hết thời gian chờ phản hồi từ RainMaker.');
+                    timeoutError.status = 0;
+                    throw timeoutError;
+                }
+                throw error;
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+        throw lastError || new Error('Không thể kết nối RainMaker.');
     }
 
     function togglePasswordVisibility() {
@@ -896,7 +1089,7 @@
         const todayBtn = document.getElementById('nav-today-btn');
         if (!label) return;
         const range = getPeriodRange(chartPeriod, chartAnchorDate);
-        const lastDayInRange = addDays(range.end, -1);
+        const lastDayInRange = new Date(Math.max(range.start.getTime(), range.end.getTime() - 1000));
         if (chartPeriod === 'day') label.innerText = fmtDMY(chartAnchorDate);
         else if (chartPeriod === 'year') label.innerText = `${chartAnchorDate.getFullYear()}`;
         else label.innerText = `${fmtDMY(range.start)} – ${fmtDMY(lastDayInRange)}`;
@@ -920,11 +1113,9 @@
 
     // Gọi 1 trang dữ liệu, trả về mảng {ts, val} thô từ response ts_data[0].params[0].values
     async function fetchTsPage(url) {
-        const response = await fetch(url, {
+        const { data } = await rainmakerRequest(url, {
             headers: { 'Authorization': `Bearer ${accessToken}`, 'accept': 'application/json' }
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.description || `HTTP ${response.status}`);
+        }, { timeoutMs: 12000, retries: 1 });
         const nodeEntry = (data.ts_data || [])[0];
         const paramEntry = nodeEntry && (nodeEntry.params || [])[0];
         return (paramEntry && paramEntry.values) || [];
@@ -1043,15 +1234,24 @@
         }
     }
 
-    function escAttr(s) { return String(s).replace(/'/g, "\\'"); }
+    function escAttr(value) {
+        const js = String(value ?? '')
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/\r/g, '\\r')
+            .replace(/\n/g, '\\n');
+        return escHtml(js);
+    }
 
     // Đoán đơn vị của 1 tham số số dựa trên từ khoá trong tên (không dấu) — chỉ ảnh hưởng hiển thị,
     // không ảnh hưởng logic. Không đoán được thì để trống.
     function guessUnit(paramName) {
-        const n = (paramName || '').toLowerCase();
-        if (/nhiet/.test(n)) return '°C';
-        if (/am/.test(n)) return '%';
-        if (/sang|lux/.test(n)) return 'Lux';
+        const n = normalizeVNText(paramName);
+        if (/nhiet|temperature|temp/.test(n)) return '°C';
+        if (/do am dat|soil/.test(n)) return '%';
+        if (/do am|humidity|humid/.test(n)) return '%';
+        if (/anh sang|sang|lux/.test(n)) return 'Lux';
+        if (/phan tram|percent|brightness|do sang/.test(n)) return '%';
         return '';
     }
 
@@ -1085,19 +1285,16 @@
     async function fetchNodeConfig() {
         logMessage("Đang tải cấu hình thiết bị (Node Config) từ Cloud...");
         try {
-            const response = await fetch(`${API_BASE}/user/nodes/config?node_id=${encodeURIComponent(myNodeId)}`, {
+            const { data } = await rainmakerRequest(`/user/nodes/config?node_id=${encodeURIComponent(myNodeId)}`, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                logMessage(`Lỗi lấy cấu hình Node [${data.error_code || response.status}]: ${data.description || ''}`);
-                return;
-            }
+            }, { timeoutMs: 10000, retries: 1 });
             nodeDevices = data.devices || [];
             logMessage(`Đã tải cấu hình: ${nodeDevices.length} thiết bị (${nodeDevices.map(d => d.name).join(', ') || 'không có'})`);
         } catch (error) {
-            logMessage("Lỗi khi lấy cấu hình Node: " + error);
+            nodeDevices = [];
+            logMessage(`Lỗi lấy cấu hình Node: ${error.message || error}`);
+            throw error;
         }
     }
 
@@ -1126,8 +1323,9 @@
         { key: 'other', title: 'Môi Trường & Khác', icon: '🌦️', color: '--env', match: null }, // nhóm hứng những thiết bị không khớp 2 nhóm trên
     ];
     function classifyDeviceCategory(deviceName) {
+        const normalizedName = normalizeVNText(deviceName);
         for (const c of DEVICE_CATEGORY_DEFS) {
-            if (c.match && c.match.test(deviceName)) return c.key;
+            if (c.match && c.match.test(normalizedName)) return c.key;
         }
         return 'other';
     }
@@ -1149,7 +1347,7 @@
             items.forEach(({ dev, p, devColor }) => {
                 const key = `${dev.name}::${p.name}`;
                 html += `<div class="card" style="--metric:${devColor};">
-                    <div class="sensor-top"><span class="sensor-icon">${guessIcon(dev.name, p.name)}</span><span class="label">${dev.name} · ${p.name}</span></div>
+                    <div class="sensor-top"><span class="sensor-icon">${guessIcon(dev.name, p.name)}</span><span class="label">${escHtml(dev.name)} · ${escHtml(humanizeParamName(p.name))}</span></div>
                     <div class="value skeleton" id="p-${safeKey(key)}">--</div>
                 </div>`;
                 deviceWidgets.push({ type: 'sensor', device: dev.name, param: p.name, key });
@@ -1170,7 +1368,7 @@
             items.forEach(({ dev, p }) => {
                 const key = `${dev.name}::${p.name}`;
                 html += `<div class="card alert" id="card-${safeKey(key)}">
-                    <div class="label">${dev.name} · ${p.name}</div>
+                    <div class="label">${escHtml(dev.name)} · ${escHtml(humanizeParamName(p.name))}</div>
                     <div class="value skeleton" id="p-${safeKey(key)}" style="font-size:15px;">--</div>
                 </div>`;
                 deviceWidgets.push({ type: 'status', device: dev.name, param: p.name, key });
@@ -1186,11 +1384,11 @@
                 let nameLineHtml = '';
                 if (nameMerge) {
                     const nameKey = `${dev.name}::${nameMerge.p.name}`;
-                    nameLineHtml = `<span class="device-name-live" id="p-${safeKey(nameKey)}" style="display:block; font-size:10.5px; color:var(--text-faint); margin-top:2px;">--</span>`;
+                    nameLineHtml = `<span class="device-name-live" id="p-${safeKey(nameKey)}" style="display:none; font-size:10.5px; color:var(--text-faint); margin-top:2px;">--</span>`;
                     deviceWidgets.push({ type: 'nameLive', device: dev.name, param: nameMerge.p.name, key: nameKey });
                 }
                 html += `<label class="device-card" style="--dev-color:${devColor};">
-                    <div class="device-text"><span class="name">${dev.name} · ${p.name}</span><span class="device-state" id="state-${safeKey(key)}">--</span>${nameLineHtml}</div>
+                    <div class="device-text"><span class="name">${escHtml(dev.name)}</span><span class="device-state" id="state-${safeKey(key)}">-- · ${escHtml(humanizeParamName(p.name))}</span>${nameLineHtml}</div>
                     <span class="icon-switch">
                         <input type="checkbox" id="sw-${safeKey(key)}" onchange="onDeviceToggle('${escAttr(dev.name)}','${escAttr(p.name)}','${safeKey(key)}', this.checked)">
                         <span class="icon-toggle-visual">${guessIcon(dev.name, p.name)}</span>
@@ -1205,7 +1403,7 @@
             html += `<div class="grid">`;
             items.forEach(({ dev, p }) => {
                 const key = `${dev.name}::${p.name}`;
-                html += `<button class="btn-action" id="btn-${safeKey(key)}" onclick="triggerAction('${escAttr(dev.name)}','${escAttr(p.name)}','${safeKey(key)}')">${guessIcon(dev.name, p.name)} ${dev.name} · ${p.name}</button>`;
+                html += `<button class="btn-action" id="btn-${safeKey(key)}" onclick="triggerAction('${escAttr(dev.name)}','${escAttr(p.name)}','${safeKey(key)}')">${guessIcon(dev.name, p.name)} ${escHtml(dev.name)} · ${escHtml(humanizeParamName(p.name))}</button>`;
                 deviceWidgets.push({ type: 'action', device: dev.name, param: p.name, key });
             });
             html += `</div>`;
@@ -1219,7 +1417,7 @@
                 const step = (p.bounds && p.bounds.step) ? p.bounds.step : 1;
                 html += `<div style="margin-top:18px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                        <label>${dev.name} · ${p.name}</label>
+                        <label>${escHtml(dev.name)} · ${escHtml(humanizeParamName(p.name))}</label>
                         <span class="range-value-badge" id="val-${safeKey(key)}">--</span>
                     </div>
                     <div class="range-row">
@@ -1347,13 +1545,23 @@
 
     function updateDeviceOnCount() {
         const el = document.getElementById('device-on-count');
-        if (!el) return;
+        const overviewEl = document.getElementById('overview-devices');
         const toggles = deviceWidgets.filter(w => w.type === 'toggle');
-        if (!toggles.length) { el.style.display = 'none'; return; }
+        if (!toggles.length) {
+            if (el) el.style.display = 'none';
+            if (overviewEl) overviewEl.innerText = '0/0';
+            return;
+        }
         let on = 0;
-        toggles.forEach(w => { const cb = document.getElementById(`sw-${safeKey(w.key)}`); if (cb && cb.checked) on++; });
-        el.style.display = '';
-        el.innerText = `${on}/${toggles.length} đang bật`;
+        toggles.forEach(w => {
+            const cb = document.getElementById(`sw-${safeKey(w.key)}`);
+            if (cb && cb.checked) on++;
+        });
+        if (el) {
+            el.style.display = '';
+            el.innerText = `${on}/${toggles.length} đang bật`;
+        }
+        if (overviewEl) overviewEl.innerText = `${on}/${toggles.length}`;
     }
 
     // Nút bấm tức thời (vd "Giả Lập Đột Nhập"): gửi lệnh = true, firmware tự xử lý rồi tự trả tham
@@ -1379,7 +1587,10 @@
         const loginBtn = document.getElementById('login-btn');
         API_BASE = document.getElementById('region').value;
 
-        if (!email || !password) { alert("Vui lòng nhập đầy đủ Email và Mật khẩu!"); return; }
+        if (!email || !password) {
+            showToast('Vui lòng nhập đầy đủ Email và Mật khẩu.', 'warn');
+            return;
+        }
 
         loginBtn.disabled = true;
         loginBtn.textContent = "Đang đăng nhập...";
@@ -1387,40 +1598,44 @@
         logMessage("Đang đăng nhập tới " + API_BASE + " ...");
 
         try {
-            const response = await fetch(`${API_BASE}/login2`, {
+            const { data } = await rainmakerRequest('/login2', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ user_name: email, password: password })
+                body: JSON.stringify({ user_name: email, password })
+            }, { timeoutMs: 12000, retries: 1 });
+
+            if (!data.accesstoken) throw new Error('Máy chủ không trả về access token.');
+            accessToken = data.accesstoken;
+            logMessage("Đăng nhập thành công!");
+            setConnStatus('connected', 'Đã kết nối');
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('dashboard-section').style.display = 'block';
+
+            await fetchNodeId();
+            if (!myNodeId) throw new Error('Tài khoản chưa có Node Smart Home để điều khiển.');
+            await fetchNodeConfig();
+            buildDynamicDashboard();
+            buildParamChips();
+            await refreshAll();
+            startAutoSync();
+            showToast('Đã kết nối RainMaker thành công.', 'success');
+
+            ensureChartLib().then(() => {
+                updateAnchorLabel();
+                renderCharts();
+                startChartAutoRefresh();
+            }).catch(err => {
+                document.getElementById('chart-hint').innerText = 'Lỗi tải thư viện biểu đồ: ' + err.message;
+                logMessage('Lỗi khởi tạo biểu đồ: ' + err.message);
             });
-            let data;
-            try { data = await response.json(); }
-            catch (e) { logMessage("Không đọc được phản hồi từ server."); setConnStatus('error', 'Lỗi kết nối'); return; }
-
-            if (response.ok && data.accesstoken) {
-                accessToken = data.accesstoken;
-                logMessage("Đăng nhập thành công!");
-                setConnStatus('connected', 'Đã kết nối');
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('dashboard-section').style.display = 'block';
-                await fetchNodeId();
-                await fetchNodeConfig();
-                buildDynamicDashboard();
-                buildParamChips();
-                await refreshAll();
-                startAutoSync();
-
-                // Chart.js được nạp riêng, không làm gián đoạn đăng nhập nếu lỗi mạng
-                ensureChartLib().then(() => { updateAnchorLabel(); renderCharts(); startChartAutoRefresh(); }).catch(err => {
-                    document.getElementById('chart-hint').innerText = 'Lỗi tải thư viện biểu đồ: ' + err.message;
-                    logMessage('Lỗi khởi tạo biểu đồ: ' + err.message);
-                });
-            } else {
-                logMessage(`Lỗi server [${data.error_code || response.status}]: ` + (data.description || "Sai tài khoản/mật khẩu"));
-                setConnStatus('error', 'Đăng nhập thất bại');
-            }
         } catch (error) {
-            logMessage("Lỗi kết nối: " + error);
-            setConnStatus('error', 'Lỗi kết nối');
+            logMessage(`Đăng nhập/kết nối thất bại: ${error.message || error}`);
+            setConnStatus('error', 'Đăng nhập thất bại');
+            showToast(error.status === 401 ? 'Sai tài khoản hoặc mật khẩu RainMaker.' : `Không thể kết nối: ${error.message || error}`, 'error');
+            accessToken = '';
+            myNodeId = '';
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
         } finally {
             loginBtn.disabled = false;
             loginBtn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg> Đăng Nhập &amp; Kết Nối';
@@ -1431,85 +1646,115 @@
     async function fetchNodeId() {
         logMessage("Đang quét danh sách thiết bị (Nodes)...");
         try {
-            const response = await fetch(`${API_BASE}/user/nodes?node_details=false`, {
+            const { data } = await rainmakerRequest('/user/nodes?node_details=false', {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            const data = await response.json();
+            }, { timeoutMs: 10000, retries: 1 });
             if (data.nodes && data.nodes.length > 0) {
                 myNodeId = data.nodes[0];
                 logMessage(`Tìm thấy Node ID: ${myNodeId}`);
             } else {
+                myNodeId = '';
                 logMessage("Tài khoản này chưa có thiết bị nào được kết nối!");
             }
         } catch (error) {
-            logMessage("Lỗi khi lấy danh sách Node: " + error);
+            myNodeId = '';
+            logMessage("Lỗi khi lấy danh sách Node: " + (error.message || error));
+            throw error;
         }
     }
 
     // 3. TỰ ĐỘNG ĐỒNG BỘ (POLLING) — mỗi lần đồng bộ cũng ghi 1 điểm dữ liệu vào biểu đồ
     // Tự tạm dừng khi tab trình duyệt bị ẩn (đổi tab khác) để tiết kiệm mạng/pin, và tự tiếp tục khi quay lại.
+    function updateAutoSyncUI() {
+        const liveDot = document.getElementById('live-dot');
+        const liveText = document.getElementById('live-text');
+        const icon = document.getElementById('autosync-ico');
+        const label = document.getElementById('autosync-label');
+        if (userWantsAutoSync) {
+            liveDot?.classList.add('live');
+            if (liveText) liveText.innerText = `Tự động đồng bộ ~${Math.round(currentAutoSyncMs / 1000)}s`;
+            if (icon) icon.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+            if (label) label.innerText = 'Tạm dừng';
+        } else {
+            liveDot?.classList.remove('live');
+            if (liveText) liveText.innerText = 'Đã tạm dừng tự động đồng bộ';
+            if (icon) icon.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M7 5l12 7-12 7V5Z"/></svg>';
+            if (label) label.innerText = 'Bật lại';
+        }
+    }
+
+    function scheduleNextSync(delay = currentAutoSyncMs) {
+        if (autoSyncTimer) clearTimeout(autoSyncTimer);
+        autoSyncTimer = null;
+        if (!userWantsAutoSync || document.hidden || !accessToken) return;
+        autoSyncTimer = setTimeout(async () => {
+            await refreshAll();
+            scheduleNextSync(currentAutoSyncMs);
+        }, delay);
+    }
+
     function startAutoSync() {
-        if (autoSyncTimer) clearInterval(autoSyncTimer);
+        if (autoSyncTimer) clearTimeout(autoSyncTimer);
         userWantsAutoSync = true;
         pausedForVisibility = false;
-        autoSyncTimer = setInterval(refreshAll, AUTO_SYNC_MS);
-        document.getElementById('live-dot').classList.add('live');
-        document.getElementById('live-text').innerText = `Đang tự động đồng bộ & ghi dữ liệu mỗi ${AUTO_SYNC_MS/1000}s`;
-        document.getElementById('autosync-ico').innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
-        document.getElementById('autosync-label').innerText = 'Tạm dừng';
+        currentAutoSyncMs = BASE_AUTO_SYNC_MS;
+        updateAutoSyncUI();
+        scheduleNextSync(currentAutoSyncMs);
     }
     function stopAutoSync() {
-        if (autoSyncTimer) clearInterval(autoSyncTimer);
+        if (autoSyncTimer) clearTimeout(autoSyncTimer);
         autoSyncTimer = null;
         userWantsAutoSync = false;
-        document.getElementById('live-dot').classList.remove('live');
-        document.getElementById('live-text').innerText = 'Đã tạm dừng tự động đồng bộ';
-        document.getElementById('autosync-ico').innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M7 5l12 7-12 7V5Z"/></svg>';
-        document.getElementById('autosync-label').innerText = 'Bật lại';
+        updateAutoSyncUI();
     }
     function toggleAutoSync() {
-        if (userWantsAutoSync) { stopAutoSync(); logMessage("Đã tạm dừng tự động đồng bộ."); }
-        else { startAutoSync(); logMessage("Đã bật lại tự động đồng bộ."); }
+        if (userWantsAutoSync) {
+            stopAutoSync();
+            logMessage("Đã tạm dừng tự động đồng bộ.");
+            showToast('Đã tạm dừng đồng bộ tự động.', 'info');
+        } else {
+            startAutoSync();
+            logMessage("Đã bật lại tự động đồng bộ.");
+            refreshAll();
+            showToast('Đã bật lại đồng bộ tự động.', 'success');
+        }
     }
     document.addEventListener('visibilitychange', () => {
         if (!accessToken) return;
         if (document.hidden) {
-            if (autoSyncTimer) { clearInterval(autoSyncTimer); autoSyncTimer = null; pausedForVisibility = true; }
+            if (autoSyncTimer) clearTimeout(autoSyncTimer);
+            autoSyncTimer = null;
+            pausedForVisibility = true;
         } else if (pausedForVisibility && userWantsAutoSync) {
             pausedForVisibility = false;
-            refreshAll();
-            autoSyncTimer = setInterval(refreshAll, AUTO_SYNC_MS);
+            refreshAll().finally(() => scheduleNextSync(currentAutoSyncMs));
         }
     });
 
     // 4. LẤY TRẠNG THÁI TẤT CẢ THAM SỐ HIỆN TẠI
     // Chuẩn hoá 1 giá trị chuỗi trạng thái để so sánh (bỏ khoảng trắng thừa, viết thường)
-    function normalizeStatus(s) { return String(s).trim().toLowerCase(); }
+    function normalizeStatus(value) { return normalizeVNText(value); }
     // Các giá trị được xem là "bình thường/không cảnh báo" cho các tham số dạng trạng thái
-    const NORMAL_STATUS_VALUES = new Set(['binh thuong', 'binh thường', 'an toan', 'an toàn', 'ok', 'san sang', 'sẵn sàng', 'ready', 'normal', 'off', 'tat', 'khong', 'none', '']);
+    const NORMAL_STATUS_VALUES = new Set(['binh thuong', 'an toan', 'ok', 'san sang', 'ready', 'normal', 'off', 'tat', 'khong', 'none', '']);
     // Chỉ áp dụng heuristic tô đỏ/kích còi cho những tham số có TÊN gợi ý là cảnh báo/lỗi (vd "Bao Chay",
     // "Trang Thai An Ninh", "Canh Bao ..."), để tránh tô nhầm những chuỗi hiển thị thông thường như "Thoi Tiet".
-    function isAlarmStatusKey(key) { return /bao|canh|loi|error|alarm|chay|fire|gas|an ninh|security|dot nhap|sat nhap|intrusion/i.test(key); }
+    function isAlarmStatusKey(key) { return /bao|canh|loi|error|alarm|chay|fire|gas|an ninh|security|dot nhap|xam nhap|intrusion/.test(normalizeVNText(key)); }
 
     async function refreshAll() {
         if (!accessToken || !myNodeId || isRefreshing) return;
         isRefreshing = true;
         try {
-            const response = await fetch(`${API_BASE}/user/nodes/params?node_id=${encodeURIComponent(myNodeId)}`, {
+            const { data } = await rainmakerRequest(`/user/nodes/params?node_id=${encodeURIComponent(myNodeId)}`, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                logMessage(`Lỗi lấy trạng thái [${data.error_code || response.status}]: ${data.description || ''}`);
-                setConnStatus('error', 'Mất kết nối');
-                return;
-            }
-            setConnStatus('connected', 'Đã kết nối');
+            }, { timeoutMs: 9000, retries: 1 });
 
-            // Duyệt qua TOÀN BỘ widget đã được dò thấy trong cấu hình Node (xem buildDynamicDashboard)
-            // và cập nhật đúng phần tử DOM tương ứng — không còn phụ thuộc tên thiết bị/tham số cố định.
+            setConnStatus('connected', 'Đã kết nối');
+            currentAutoSyncMs = BASE_AUTO_SYNC_MS;
+            const nextAlarmingKeys = new Set();
+            const nextAlarmingDetails = new Map();
+
             deviceWidgets.forEach(w => {
                 const devData = data[w.device];
                 if (!devData || typeof devData[w.param] === 'undefined') return;
@@ -1525,7 +1770,7 @@
                     if (el && document.activeElement !== el) {
                         el.value = val;
                         const badge = document.getElementById(`val-${domKey}`);
-                        if (badge) badge.innerText = val;
+                        if (badge) badge.innerText = `${val}${guessUnit(w.param) === '%' ? '%' : ''}`;
                         updateRangeFill(el);
                     }
                 } else if (w.type === 'sensor') {
@@ -1538,19 +1783,24 @@
                     }
                 } else if (w.type === 'status') {
                     setText(`p-${domKey}`, val, '');
-                    const dangCanhBao = isAlarmStatusKey(w.key) && !NORMAL_STATUS_VALUES.has(normalizeStatus(val));
-                    document.getElementById(`card-${domKey}`)?.classList.toggle('is-alarm', dangCanhBao);
-                    if (dangCanhBao) alarmingKeys.add(w.key); else alarmingKeys.delete(w.key);
+                    const isAlarm = isAlarmStatusKey(w.key) && !NORMAL_STATUS_VALUES.has(normalizeStatus(val));
+                    document.getElementById(`card-${domKey}`)?.classList.toggle('is-alarm', isAlarm);
+                    if (isAlarm) {
+                        nextAlarmingKeys.add(w.key);
+                        nextAlarmingDetails.set(w.key, `${w.device}: ${val}`);
+                    }
                 } else if (w.type === 'nameLive') {
-                    // Chỉ hiển thị tên thiết bị realtime — KHÔNG tham gia logic tính còi báo động,
-                    // tránh false-positive khi tên thiết bị chứa từ khoá như "Dot Nhap"/"Gas" (xem isAlarmStatusKey).
                     setText(`p-${domKey}`, val, '');
                 }
             });
-            updateDeviceOnCount();
-            capNhatCoiTheoTongTrangThai();
 
-            // Giá trị hiện tại hiển thị trên thẻ biểu đồ (lịch sử vẫn lấy trực tiếp từ Cloud khi vẽ)
+            alarmingKeys = nextAlarmingKeys;
+            alarmingDetails = nextAlarmingDetails;
+            updateDeviceOnCount();
+            updateOverview(data);
+            capNhatCoiTheoTongTrangThai();
+            updateAutoSyncUI();
+
             Object.keys(chartInstances).forEach(k => {
                 updateChartCardValue(k);
                 if (chartType === 'pie') {
@@ -1562,11 +1812,25 @@
 
             const now = new Date();
             const syncEl = document.getElementById('last-sync-text');
-            if (syncEl) syncEl.innerText = `Đồng bộ lần cuối: ${now.toLocaleTimeString('vi-VN', { hour12: false })}`;
-
+            if (syncEl) syncEl.innerText = `Đồng bộ: ${now.toLocaleTimeString('vi-VN', { hour12: false })}`;
         } catch (error) {
-            logMessage("Lỗi khi lấy trạng thái: " + error);
-            setConnStatus('error', 'Mất kết nối');
+            const status = error.status || 0;
+            if (status === 401) {
+                logMessage('Phiên RainMaker đã hết hạn. Vui lòng đăng nhập lại.');
+                showToast('Phiên đăng nhập đã hết hạn.', 'warn');
+                logoutRainMaker(false);
+                return;
+            }
+            if (status === 429) {
+                currentAutoSyncMs = Math.min(MAX_AUTO_SYNC_MS, Math.max(5000, Math.round(currentAutoSyncMs * 1.6)));
+                setConnStatus('connecting', 'Cloud đang bận');
+                logMessage(`RainMaker giới hạn tần suất (429), tự giãn đồng bộ lên ~${Math.round(currentAutoSyncMs/1000)}s.`);
+            } else {
+                currentAutoSyncMs = Math.min(MAX_AUTO_SYNC_MS, Math.max(5000, Math.round(currentAutoSyncMs * 1.35)));
+                logMessage("Lỗi khi lấy trạng thái: " + (error.message || error));
+                setConnStatus('error', 'Mất kết nối');
+            }
+            updateAutoSyncUI();
         } finally {
             isRefreshing = false;
         }
@@ -1579,22 +1843,30 @@
 
     // 5. GỬI LỆNH THAY ĐỔI THAM SỐ — trả về true/false để nơi gọi biết lệnh có thành công hay không (dùng để rollback UI)
     async function toggleParam(deviceName, paramName, value) {
-        if (!accessToken || !myNodeId) { alert("Chưa kết nối với thiết bị. Vui lòng chờ tải dữ liệu!"); return false; }
+        if (!accessToken || !myNodeId) {
+            showToast('Chưa kết nối với RainMaker.', 'warn');
+            return false;
+        }
         logMessage(`Gửi lệnh: ${deviceName} / ${paramName} -> ${JSON.stringify(value)}...`);
         const payload = {}; payload[deviceName] = {}; payload[deviceName][paramName] = value;
         try {
-            const response = await fetch(`${API_BASE}/user/nodes/params?node_id=${encodeURIComponent(myNodeId)}`, {
+            await rainmakerRequest(`/user/nodes/params?node_id=${encodeURIComponent(myNodeId)}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
                 body: JSON.stringify(payload)
-            });
-            let result = {};
-            try { result = await response.json(); } catch (e) {}
-            if (response.ok) { logMessage(`Lệnh gửi thành công tới [${deviceName} / ${paramName}]!`); return true; }
-            logMessage(`Lỗi gửi lệnh [${result.error_code || response.status}]: ${result.description || 'Không rõ nguyên nhân'}`);
-            return false;
+            }, { timeoutMs: 9000, retries: 1 });
+            logMessage(`Lệnh gửi thành công tới [${deviceName} / ${paramName}]!`);
+            showToast(`${deviceName}: đã gửi lệnh thành công.`, 'success');
+            setTimeout(refreshAll, 350);
+            return true;
         } catch (error) {
-            logMessage("Lỗi khi gửi lệnh điều khiển: " + error);
+            if (error.status === 401) {
+                showToast('Phiên đăng nhập đã hết hạn.', 'warn');
+                logoutRainMaker(false);
+            } else {
+                showToast(`Không gửi được lệnh: ${error.message || error}`, 'error');
+            }
+            logMessage(`Lỗi gửi lệnh: ${error.message || error}`);
             return false;
         }
     }
@@ -1603,6 +1875,7 @@
     // Còi web kêu khi có BẤT KỲ tham số dạng trạng thái nào (thuộc bất kỳ thiết bị nào) đang ở trạng
     // thái bất thường — danh sách alarmingKeys được cập nhật động mỗi lần refreshAll() (xem isAlarmStatusKey).
     function capNhatCoiTheoTongTrangThai() {
+        updateAlertBanner();
         if (alarmingKeys.size > 0) startSiren(); else stopSiren();
     }
 
@@ -1698,6 +1971,118 @@
     // Khởi tạo trạng thái nút ngay khi trang tải xong
     document.addEventListener('DOMContentLoaded', updateSirenButton);
     updateSirenButton();
+
+
+    // ==== TỔNG QUAN / CẢNH BÁO / TOAST / PHIÊN ĐĂNG NHẬP ====
+    function formatOverviewValue(value, unit, decimals = 0) {
+        if (typeof value !== 'number' || Number.isNaN(value)) return '--';
+        return `${value.toFixed(decimals)}${unit ? ' ' + unit : ''}`;
+    }
+
+    function findSensorValue(data, matcher, excludeMatcher = null) {
+        for (const w of deviceWidgets) {
+            if (w.type !== 'sensor') continue;
+            const text = normalizeVNText(`${w.device} ${w.param}`);
+            if (!matcher.test(text) || (excludeMatcher && excludeMatcher.test(text))) continue;
+            const value = data?.[w.device]?.[w.param];
+            if (typeof value === 'number') return value;
+        }
+        return null;
+    }
+
+    function updateOverview(data) {
+        const temp = findSensorValue(data, /nhiet|temperature|temp/);
+        const soil = findSensorValue(data, /do am dat|soil|moisture/);
+        const hum = findSensorValue(data, /do am|humidity|humid/, /dat|soil/);
+        let light = findSensorValue(data, /(anh sang|lux|light).*(trong|indoor)|(trong|indoor).*(anh sang|lux|light)/);
+        if (light === null) light = findSensorValue(data, /anh sang|lux|light/);
+
+        const tempEl = document.getElementById('overview-temp');
+        const humEl = document.getElementById('overview-hum');
+        const lightEl = document.getElementById('overview-light');
+        const soilEl = document.getElementById('overview-soil');
+        const nodeEl = document.getElementById('overview-node');
+        if (tempEl) tempEl.textContent = formatOverviewValue(temp, '°C', temp !== null && !Number.isInteger(temp) ? 1 : 0);
+        if (humEl) humEl.textContent = formatOverviewValue(hum, '%', hum !== null && !Number.isInteger(hum) ? 1 : 0);
+        if (lightEl) lightEl.textContent = formatOverviewValue(light, 'Lux', 0);
+        if (soilEl) soilEl.textContent = formatOverviewValue(soil, '%', 0);
+        if (nodeEl) nodeEl.textContent = `Node: ${myNodeId ? myNodeId.slice(0, 10) + (myNodeId.length > 10 ? '…' : '') : '--'}`;
+    }
+
+    function updateAlertBanner() {
+        const banner = document.getElementById('alarm-banner');
+        const icon = document.getElementById('alarm-banner-icon');
+        const title = document.getElementById('alarm-banner-title');
+        const detail = document.getElementById('alarm-banner-detail');
+        const count = document.getElementById('alarm-banner-count');
+        if (!banner) return;
+
+        const active = alarmingKeys.size > 0;
+        banner.classList.toggle('is-safe', !active);
+        banner.classList.toggle('is-danger', active);
+        if (icon) icon.textContent = active ? '!' : '✓';
+        if (title) title.textContent = active ? 'CẢNH BÁO HỆ THỐNG' : 'Hệ thống an toàn';
+        const details = [...alarmingDetails.values()];
+        if (detail) detail.textContent = active ? details.slice(0, 3).join(' · ') : 'Không phát hiện cảnh báo bất thường.';
+        if (count) count.textContent = `${alarmingKeys.size} cảnh báo`;
+    }
+
+    function showToast(message, type = 'info', duration = 2800) {
+        const stack = document.getElementById('toast-stack');
+        if (!stack) return;
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icon = type === 'success' ? '✓' : type === 'error' ? '×' : type === 'warn' ? '!' : 'i';
+        toast.innerHTML = `<strong>${icon}</strong><span>${escHtml(message)}</span>`;
+        stack.appendChild(toast);
+        while (stack.children.length > 4) stack.firstElementChild?.remove();
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(6px)';
+            toast.style.transition = '.18s ease';
+            setTimeout(() => toast.remove(), 200);
+        }, duration);
+    }
+
+    function toggleLogPanel() {
+        const section = document.getElementById('log-section');
+        const btn = document.getElementById('log-toggle-btn');
+        if (!section) return;
+        const collapsed = section.classList.toggle('collapsed');
+        if (btn) btn.textContent = collapsed ? 'Mở log' : 'Thu gọn';
+    }
+
+    function logoutRainMaker(showNotice = true) {
+        if (autoSyncTimer) clearTimeout(autoSyncTimer);
+        autoSyncTimer = null;
+        stopChartAutoRefresh();
+        userWantsAutoSync = false;
+        pausedForVisibility = false;
+        accessToken = '';
+        myNodeId = '';
+        nodeDevices = [];
+        deviceWidgets = [];
+        PARAM_DEFS = [];
+        selectedParams = new Set();
+        latestSensorValues = {};
+        alarmingKeys = new Set();
+        alarmingDetails = new Map();
+        seriesCache = {};
+        Object.values(chartInstances).forEach(chart => {
+            if (chart && typeof chart.destroy === 'function') chart.destroy();
+        });
+        chartInstances = {};
+        document.getElementById('dynamic-devices').innerHTML = '';
+        document.getElementById('chart-grid').innerHTML = '';
+        document.getElementById('param-chips').innerHTML = '';
+        document.getElementById('password').value = '';
+        document.getElementById('dashboard-section').style.display = 'none';
+        document.getElementById('login-section').style.display = 'block';
+        setConnStatus('', 'Chưa kết nối');
+        updateSirenButton();
+        stopSiren();
+        if (showNotice) showToast('Đã đăng xuất khỏi RainMaker.', 'info');
+    }
 
     // ==== 6. BIỂU ĐỒ CẢM BIẾN — mỗi thông số 1 biểu đồ riêng, dữ liệu lấy trực tiếp từ RainMaker Cloud, hỗ trợ zoom/pan ====
 

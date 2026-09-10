@@ -105,24 +105,18 @@ String sendPhotoToTelegram() {
 
     uint8_t *fbBuf = fb->buf;
     size_t fbLen = fb->len;
-    for (size_t n=0; n<fbLen; n=n+1024) {
-      if (n+1024 < fbLen) {
-        client_tcp.write(fbBuf, 1024);
-        fbBuf += 1024;
-      }
-      else if (fbLen%1024>0) {
-        size_t remainder = fbLen%1024;
-        client_tcp.write(fbBuf, remainder);
-      }
-    }  
+    for (size_t n = 0; n < fbLen; n += 1024) {
+      size_t chunkSize = min((size_t)1024, fbLen - n);
+      client_tcp.write(fbBuf + n, chunkSize);
+    }
     client_tcp.print(tail);
     esp_camera_fb_return(fb);
     
-    int waitTime = 10000;   
-    long startTimer = millis();
+    const unsigned long waitTime = 10000UL;
+    unsigned long startTimer = millis();
     boolean state = false;
     
-    while ((startTimer + waitTime) > millis()){
+    while ((millis() - startTimer) < waitTime){
       Serial.print(".");
       delay(100);      
       while (client_tcp.available()) {

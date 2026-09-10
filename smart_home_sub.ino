@@ -64,13 +64,13 @@ const int TONG_SO_NUT = sizeof(danhSachNutNhan) / sizeof(NutNhan);
 // ==============================================================================
 void initAllDevices() {
   ledcAttach(PIN_LED_NGU, 5000, 8);
-  ledcWrite(PIN_LED_KHACH, 0); 
-  Serial.println(F("[SUB-LED] Da khoi tao PWM cho LED Phong Khach (GPIO 4)"));
+  ledcWrite(PIN_LED_NGU, 0);
+  Serial.println(F("[SUB-LED] Da khoi tao PWM cho LED Phong Ngu (GPIO 5)"));
 
-  pinMode(PIN_LED_KHACH, OUTPUT); digitalWrite(PIN_LED_NGU, LOW);
-  pinMode(PIN_LED_BEP, OUTPUT); digitalWrite(PIN_LED_BEP, LOW);
-  pinMode(PIN_LED_WC,  OUTPUT); digitalWrite(PIN_LED_WC,  LOW);
-  Serial.println(F("[SUB-LED] Da khoi tao cac LED con lai (GPIO 5, 18, 19) o muc LOW"));
+  pinMode(PIN_LED_KHACH, OUTPUT); digitalWrite(PIN_LED_KHACH, LOW);
+  pinMode(PIN_LED_BEP, OUTPUT);   digitalWrite(PIN_LED_BEP, LOW);
+  pinMode(PIN_LED_WC,  OUTPUT);   digitalWrite(PIN_LED_WC, LOW);
+  Serial.println(F("[SUB-LED] Da khoi tao cac LED ON/OFF (GPIO 4, 18, 19) o muc LOW"));
 
   pinMode(RELAY_FAN_KHACH,  OUTPUT); digitalWrite(RELAY_FAN_KHACH,  LOW); 
   pinMode(RELAY_FAN_NGU,    OUTPUT); digitalWrite(RELAY_FAN_NGU,    LOW);
