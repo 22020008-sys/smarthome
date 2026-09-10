@@ -76,9 +76,6 @@ volatile long target_step_pos  = 0;
 int stepDelay = 3;
 TaskHandle_t StepperTask;
 
-// Homing rèm: vị trí đóng hoàn toàn được xem là HOME = 0.
-// Nếu mất điện khi rèm đang chạy, lần khởi động sau sẽ tự chạy về HOME
-// rồi mới trở lại trạng thái đã lưu.
 #define CURTAIN_HOME_EXTRA_STEPS 300L
 #define CURTAIN_HOME_STEP_DELAY  4
 volatile bool curtainHomeDone = true;
