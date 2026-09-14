@@ -536,11 +536,11 @@ void xuLyCacCamBienAnNinh() {
     if (fireDetected) esp_rmaker_raise_alert("CANH BAO CHAY! Phat hien ngon lua!");
   }
   bool currentGas = (digitalRead(GAS_SENSOR_PIN) == LOW); 
-  currentGasLevel = readGasAnalogOversampled(); // Dùng hàm mới có oversampling
+  currentGasLevel = readGasAnalogOversampled(); 
   if (currentGas != gasDetected) { 
     gasDetected = currentGas;
     cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", gasDetected ? "CO GAS" : "An toan");
-    if (gasDetected) esp_rmaker_raise_alert("CANH BAO: Phat hien ro ri Gas!"); // <-- Push notification
+    if (gasDetected) esp_rmaker_raise_alert("CANH BAO: Phat hien ro ri Gas!"); 
   }
   static bool lastSimulatedAlarm = false;
   if (simulatedIntrusion && (millis() - simulatedIntrusionStart > SIMULATED_ALARM_DURATION)) simulatedIntrusion = false;
