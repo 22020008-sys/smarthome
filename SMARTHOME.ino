@@ -19,6 +19,7 @@
 #include <ArduinoOTA.h>
 #include <HTTPClient.h>
 #include <BH1750.h>
+#include <atomic>
 
 const char *service_name = "NHATHONGMINH";
 const char *pop          = "1234abcd";
@@ -76,6 +77,9 @@ volatile long target_step_pos  = 0;
 int stepDelay = 3;
 TaskHandle_t StepperTask;
 
+// Homing rèm: vị trí đóng hoàn toàn được xem là HOME = 0.
+// Nếu mất điện khi rèm đang chạy, lần khởi động sau sẽ tự chạy về HOME
+// rồi mới trở lại trạng thái đã lưu.
 #define CURTAIN_HOME_EXTRA_STEPS 300L
 #define CURTAIN_HOME_STEP_DELAY  4
 volatile bool curtainHomeDone = true;
@@ -171,6 +175,11 @@ unsigned long simulatedFireStart   = 0;
 bool simulatedGas                  = false; 
 unsigned long simulatedGasStart    = 0;
 #define SIMULATED_GAS_DURATION    15000UL
+// Callback chỉ chuyển yêu cầu; trạng thái gas thật/giả lập được xử lý trong loop.
+std::atomic<bool> gasSimulationRequested(false);
+bool gasReportRequested = true;
+#define GAS_REPORT_INTERVAL_MS 30000UL
+#define GAS_REPORT_RETRY_MS     5000UL
 bool buzzerBlinkState       = false; 
 bool fireDetected           = false;
 bool gasDetected            = false;
@@ -488,10 +497,7 @@ void kichHoatGiaLapLua() {
 
 void kichHoatGiaLapGas() {
   Serial.println(F("[LOG] Da kich hoat GIA LAP GAS tu App!"));
-  simulatedGas = true;
-  simulatedGasStart = millis();
-  cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", "CO GAS (GIA LAP)");
-  esp_rmaker_raise_alert("CANH BAO: Ro ri Gas! (Gia lap tu App)"); 
+  gasSimulationRequested.store(true);
   gia_lap_gas.updateAndReportParam("Power", false); 
 }
 
@@ -501,6 +507,66 @@ int readGasAnalogOversampled() {
     sum += analogRead(GAS_ANALOG_PIN);
   }
   return (int)(sum >> 4);
+}
+
+void capNhatBaoGasRainMaker() {
+  // Một nơi duy nhất ghi trạng thái: gas thật > giả lập > hết báo gas.
+  // Không suy ra trạng thái báo động từ ADC; giữ nguyên DO active LOW.
+  const int state = gasDetected ? 2 : (simulatedGas ? 1 : 0);
+  const char *status = (state == 2) ? "CO GAS" :
+                       (state == 1) ? "CO GAS (GIA LAP)" : "An toan";
+  static int lastObservedState = -1;
+  static int lastAttemptState = -1;
+  static unsigned long lastAttemptTime = 0;
+  static bool lastAttemptFailed = false;
+  const unsigned long now = millis();
+
+  if (state != lastObservedState) {
+    // Thông báo kết thúc chỉ phát một lần, không lặp theo chu kỳ gửi lại.
+    if (lastObservedState > 0 && state == 0) {
+      esp_rmaker_raise_alert("Da het bao Gas: cam bien khong con bao dong.");
+    }
+    lastObservedState = state;
+  }
+
+  const unsigned long interval = lastAttemptFailed ? GAS_REPORT_RETRY_MS : GAS_REPORT_INTERVAL_MS;
+  if (!gasReportRequested && state == lastAttemptState &&
+      (unsigned long)(now - lastAttemptTime) < interval) return;
+
+  gasReportRequested = false;
+  lastAttemptState = state;
+  lastAttemptTime = now;
+  const esp_err_t statusErr = cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", status);
+  // Gửi cả số ADC khi đổi trạng thái/định kỳ, không phụ thuộc DHT có đọc được hay không.
+  const esp_err_t levelErr = cam_bien_moi_truong.updateAndReportParam("Nong do Gas", currentGasLevel);
+  lastAttemptFailed = (statusErr != ESP_OK || levelErr != ESP_OK || WiFi.status() != WL_CONNECTED);
+  // ESP_OK là kết quả API, không phải xác nhận điện thoại đã nhận được dữ liệu.
+  // Vẫn gửi lại định kỳ để cập nhật sau khi Internet/MQTT phục hồi.
+  Serial.printf("[GAS][RM] DO=%d ADC=%d state=%s status_err=%d level_err=%d wifi=%d\n",
+                gasDetected ? LOW : HIGH, currentGasLevel, status,
+                (int)statusErr, (int)levelErr, WiFi.status() == WL_CONNECTED);
+}
+
+void xuLyBaoGas() {
+  const bool currentGas = (digitalRead(GAS_SENSOR_PIN) == LOW);
+  currentGasLevel = readGasAnalogOversampled();
+  if (currentGas != gasDetected) {
+    gasDetected = currentGas;
+    Serial.printf("[GAS][SENSOR] DO=%d ADC=%d -> %s\n",
+                  gasDetected ? LOW : HIGH, currentGasLevel,
+                  gasDetected ? "CO GAS" : "HET BAO GAS");
+    if (gasDetected) esp_rmaker_raise_alert("CANH BAO: Phat hien ro ri Gas!");
+  }
+
+  if (gasSimulationRequested.exchange(false)) {
+    simulatedGas = true;
+    simulatedGasStart = millis();
+    esp_rmaker_raise_alert("CANH BAO: Ro ri Gas! (Gia lap tu App)");
+  }
+  if (simulatedGas && (millis() - simulatedGasStart > SIMULATED_GAS_DURATION)) {
+    simulatedGas = false;
+  }
+  capNhatBaoGasRainMaker();
 }
 
 void xuLyCacCamBienAnNinh() {
@@ -535,13 +601,7 @@ void xuLyCacCamBienAnNinh() {
     cam_bien_moi_truong.updateAndReportParam("Bao Chay", fireDetected ? "CO LUA" : "An toan");
     if (fireDetected) esp_rmaker_raise_alert("CANH BAO CHAY! Phat hien ngon lua!");
   }
-  bool currentGas = (digitalRead(GAS_SENSOR_PIN) == LOW); 
-  currentGasLevel = readGasAnalogOversampled(); 
-  if (currentGas != gasDetected) { 
-    gasDetected = currentGas;
-    cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", gasDetected ? "CO GAS" : "An toan");
-    if (gasDetected) esp_rmaker_raise_alert("CANH BAO: Phat hien ro ri Gas!"); 
-  }
+  xuLyBaoGas();
   static bool lastSimulatedAlarm = false;
   if (simulatedIntrusion && (millis() - simulatedIntrusionStart > SIMULATED_ALARM_DURATION)) simulatedIntrusion = false;
   if (simulatedIntrusion != lastSimulatedAlarm) {
@@ -556,14 +616,6 @@ void xuLyCacCamBienAnNinh() {
     lastSimulatedFire = simulatedFire;
     if (!simulatedFire && !fireDetected) {
       cam_bien_moi_truong.updateAndReportParam("Bao Chay", "An toan");
-    }
-  }
-  static bool lastSimulatedGas = false;
-  if (simulatedGas && (millis() - simulatedGasStart > SIMULATED_GAS_DURATION)) simulatedGas = false;
-  if (simulatedGas != lastSimulatedGas) {
-    lastSimulatedGas = simulatedGas;
-    if (!simulatedGas && !gasDetected) {
-      cam_bien_moi_truong.updateAndReportParam("Ro ri Gas", "An toan");
     }
   }
   bool canBaoDong = intrusionDetected || forcedEntryAlarm || fireDetected || gasDetected ||
@@ -700,7 +752,10 @@ void write_callback(Device *device, Param *param, const param_val_t val, void *p
       if (s) kichHoatGiaLapLua(); 
     }
     else if (strcmp(device_name, "Gia Lap Gas") == 0) {
-      if (s) kichHoatGiaLapGas();
+      if (s) {
+        kichHoatGiaLapGas();
+        return; // Hàm trên đã trả Power=false; không ghi đè lại bằng val=true.
+      }
     }
   }
   param->updateAndReport(val);
@@ -787,6 +842,8 @@ void xuLyWiFiReconnect() {
 }
 
 void reportInitialStates() {
+  // Gửi lại gas sau khi lấy mẫu mới trong vòng loop, kể cả trạng thái "An toan".
+  gasReportRequested = true;
   den_khach.updateAndReportParam ("Power", state_den_khach); den_ngu.updateAndReportParam   ("Power", state_den_ngu);
   den_bep.updateAndReportParam   ("Power", state_den_bep);   den_wc.updateAndReportParam    ("Power", state_den_wc);
   quat_khach.updateAndReportParam("Power", state_quat_khach);quat_ngu.updateAndReportParam  ("Power", state_quat_ngu);
@@ -892,6 +949,8 @@ void setup() {
   Param targetLuxParam("Nguong Sang", "esp.param.target_lux", value(target_lux), PROP_FLAG_READ | PROP_FLAG_WRITE);
   targetLuxParam.addBounds(value(100), value(800), value(10)); targetLuxParam.addUIType(ESP_RMAKER_UI_SLIDER);
   cam_bien_moi_truong.addParam(targetLuxParam);
+  // Nhận thay đổi Ngưỡng sáng từ App để cập nhật target_lux và lưu Preferences.
+  cam_bien_moi_truong.addCb(write_callback);
   my_node.addDevice(cam_bien_moi_truong);
 
   Param secParam("Trang Thai An Ninh", "esp.param.security", value("Binh thuong"), PROP_FLAG_READ);
